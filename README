@@ -1,0 +1,57 @@
+This is pylibjit, a Python library for compiling Python functions.
+
+pylibjit works by adding decorators to functions that you want to compile.
+The program containing the compiled functions still runs inside the standard
+Python interpreter. For example:
+
+# original code
+def fib(n):
+    if n < 2:
+        return 1
+    else:
+        return fib(n-1) + fib(n-2)
+
+n = 40
+print('fib({}) = {}'.format(n, fib(n)))
+
+$ time python3 fib.py 
+fib(40) = 165580141
+
+real    1m2.539s
+user    1m2.432s
+sys     0m0.036s
+
+
+# modified code
+import jit, pylibjit
+
+@pylibjit.compile(return_type=jit.Type.int, argument_types=[jit.Type.int])
+def fib(n):
+    if n < 2:
+        return 1
+    else:
+        return fib(n-1) + fib(n-2)
+
+n = 40
+print('fib({}) = {}'.format(n, fib(n)))
+
+$ time python3 fib.py 
+fib(40) = 165580141
+
+real    0m2.156s
+user    0m2.136s
+sys     0m0.016s
+
+
+In this particular case on one machine, the program was sped up by a factor
+of about 30. See some more examples in the examples/ directory.
+
+
+pylibjit was written by Gergö Barany <gergo@complang.tuwien.ac.at>. It is
+licensed under version 2 of the GNU General Public License; see the file
+COPYING for details. The distribution contains modified copies of two other
+projects, libjit and libjit-python. See libjit/COPYING and
+libjit-python/COPYING for licensing information for those projects.
+
+See the file INSTALL for installation instructions and the user
+documentation in docs/pylibjit-guide.txt.

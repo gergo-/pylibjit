@@ -1,0 +1,244 @@
+=== Introduction ===
+
+pylibjit is a Python compiler you can invoke from within interpreted Python
+programs to compile certain functions that you want to speed up. The
+compiler is invoked by applying decorators to functions that you want to
+compile. The decorator's arguments specify data types for the function's
+arguments and any local variables it uses; they can also give additional
+information that helps the compiler generate faster code by resolving
+certain things statically that Python would usually determine dynamically at
+run time.
+
+NOTE: pylibjit is not bug-free. You might try things that make complete
+      sense and find that they don't work (and the program crashes on you).
+      Sorry. Do not use this in production.
+
+
+=== Getting started ===
+
+We will use the following function to demonstrate basic usage of pylibjit:
+
+    def range_sum(a, b):
+        sum = 0
+        for i in range(a, b):
+            sum += i
+        return sum
+
+For example, range_sum(10, 20) = 10 + 11 + ... + 19 = 145.
+
+To compile this function, you must import two modules that come in the
+pylibjit distribution:
+
+    import jit, pylibjit
+
+and apply the pylibjit.compile decorator:
+
+    @pylibjit.compile(argument_types=[int, int],
+                      variables={'sum': int, 'i': int})
+    def range_sum(a, b):
+        sum = 0
+        for i in range(a, b):
+            sum += i
+        return sum
+
+This modified program can be run through the Python interpreter as before.
+After Python has processed the function definition, the decorator will be
+executed an will replace the original Python function object 'range_sum' by
+a callable which, if called, executes a compiled version of the Python code.
+
+The decorator can take several arguments. At the very least, you need to
+pass arguments that declare the types of all local variables used in the
+function. For the function's arguments (a and b in this case), you declare
+the types by passing a list of type names for the 'argument_types' argument.
+Other local variables that are introduced by assigning to them in the
+function's body (sum and i) are declared using a map passed for the
+'variables' argument of the decorator.
+
+Applying the decorator as shown above will dump several different
+intermediate representations of the input function to the standard output.
+This is useful to let you know that the compiler is actually doing
+something, but if you want to repress it, use the dump_code argument:
+
+    @pylibjit.compile(argument_types=[int, int],
+                      variables={'sum': int, 'i': int},
+                      dump_code=False)
+    def range_sum(a, b):
+        sum = 0
+        for i in range(a, b):
+            sum += i
+        return sum
+
+This version of the code uses Python's built-in 'int' type for all the
+variables, but pylibjit also allows you to use your computer's native
+integer and floating point numbers directly. These "unboxed" number types
+are available via the jit.Type class:
+
+    @pylibjit.compile(return_type=jit.Type.float64,
+                      argument_types=[jit.Type.int, jit.Type.int],
+                      variables={'sum': jit.Type.float64, 'i': jit.Type.int})
+    def range_sum(a, b):
+        sum = 0
+        for i in range(a, b):
+            sum += i
+        return sum
+
+When using unboxed argument or return types, pylibjit automatically unboxes
+incoming Python objects and boxes outgoing numbers. If compiled code calls a
+Python function with unboxed argument values, they are boxed automatically.
+
+Unboxed arithmetic is typically much faster than Python's usual boxed
+operations, but unboxed integers are bounded by the machine's word size.
+Computations can therefore overflow and silently give wrong results. If
+overflow is a possibility in your application, use the arbitrary-precision
+int type for the affected values.
+
+Note two details in the last example above: First, it is possible to declare
+a function's return type using the 'return_type' argument. If left out, the
+return type will be 'object', i.e., a general Python object of unknown type.
+Second, type declarations can change the code's meaning without changing the
+code itself: By declaring the return type and sum's type as float64, the sum
+of the range's elements will be computed as a floating point number, and
+range_sum(10, 20) will return 145.0 (a float). This is different from pure
+Python, which would never perform floating point computations when executing
+this call.
+
+
+=== A note on semantics ===
+
+Functions compiled with pylibjit should usually behave like Python
+functions, but there are some important differences. First and foremost,
+there is no general support for exceptions; you cannot apply
+pylibjit.compile to functions that throw exceptions or that try to catch
+them with a try statement. There is also no general support for generators,
+so you cannot use the yield statement in functions you want to compile with
+pylibjit. It *is*, however, possible to iterate over generators using
+Python's for loop.
+
+When a function compiled with pylibjit calls a previously compiled function,
+Python's usual call semantics are bypassed. The call's target is determined
+at compile time rather than looked up dynamically at runtime. If the call's
+target takes unboxed arguments, and the caller's argument values are
+unboxed, no unnecessary boxing is performed. Return values are also kept
+unboxed if appropriate.
+
+Calls to some of Python's built-in functions (as listed at
+https://docs.python.org/3/library/functions.html) are also resolved
+statically. For example, no matter what the global identifier 'range' refers
+to in the examples above, pylibjit will use the built-in range function.
+
+Finally, when accessing lists or arrays with unboxed integer indices,
+pylibjit compiles away all bounds checks. If the index is out of bounds, no
+exception is thrown, and the code may crash or silently compute wrong
+results.
+
+
+=== Supported types ===
+
+The following types can be used when declaring function arguments, return
+types, or variables:
+
+object
+    An object about which nothing is known. It is always OK to declare some
+    value to be of this type; all operations on such values will be
+    dispatched dynamically (that is, pylibjit will not apply any
+    optimizations).
+
+int
+    Python's built-in arbitrary-precision (boxed) integer type. Arithmetic
+    operations will be dispatched statically if appropriate.
+
+float
+    Python's built-in boxed floating point type. Arithmetic operations will
+    be dispatched statically if appropriate.
+
+jit.Type.int
+jit.Type.float64
+jit.Type.ubyte
+    libjit's unboxed machine integer, 64-bit floating point ("double"), and
+    unsigned byte types. Arithmetic operations on two unboxed operands will
+    be performed unboxed. Operations on mixed boxed/unboxed operands will be
+    boxed.
+
+[T]
+    List of objects of type T, where T is one of the other boxed types in
+    this list. When storing to lists, pylibjit will not check the operand's
+    type, but when retrieving a value from a list, pylibjit may trust the
+    type annotation and treat the resulting value as a T. When accessed with
+    an index of an unboxed integer type, bounds checks will not be performed
+    (see above).
+
+jit.Type.array_t(T)
+    Array (of Python's array.array class) with elements of type T, where T
+    may be one of the unboxed number types listed above. The type should
+    match the type argument used for constructing the array. Array loads and
+    stores are unboxed. When used with an unboxed index, bounds checks are
+    not performed.
+
+C
+    The name of some class C that is currently in scope. Any values at run
+    time must be of *exactly* this type, not a subtype. If class C contains
+    a compiled method m, and c is declared to be of type C, then calls to
+    c.m from compiled code will be resolved statically rather than looked up
+    dynamically (i.e., virtual methods are turned into C++-style non-virtual
+    member functions).
+
+pylibjit.this_class()
+    A special type construct to denote the current class, to be used for
+    method definitions. This is necessary because a class's name is not
+    available in the global scope until after its definition has ended. For
+    example:
+
+        class Foo:
+            # error: Foo is undeclared
+            @pylibjit.compile(argument_types=[Foo, Foo])
+            def spam(self, x):
+                return x
+
+            # OK, the method's arguments are both of type Foo
+            @pylibjit.compile(argument_types=[pylibjit.this_class()] * 2)
+            def eggs(self, x):
+                return x
+
+
+=== Decorator arguments ===
+
+The following arguments may be passed to pylibjit.compile. Default values
+are given using = where appropriate.
+
+argument_types
+    List of the types of the function's arguments (keyword arguments are not
+    yet supported). Must be a list of length equal to the number of
+    arguments. If this is not present, you will get ugly KeyErrors.
+
+return_type=object
+    The function's return type.
+
+variables={}
+    A dict of variable declarations. The keys are the names of the
+    function's local variables, expressed as strings; the values are types.
+    All local variables must be present, otherwise you will get ugly
+    KeyErrors.
+    If the code accesses some object attribute foo.spam, you may also use
+    the pseudo variable name syntax 'foo.spam' as a key to declare the type
+    to be assumed for that member.
+
+global_vars={}
+    A dict of global variables used by the function, like 'variables' above.
+    In contrast to the local variables, it is OK not to declare the types of
+    all globals you use; 'object' will be assumed as the default.
+
+intrinsics=set()
+    A set of math intrinsic functions used by the function. These are
+    resolved statically and used for unboxed computations if appropriate.
+    The values in the set may be strings containing the qualified or
+    unqualified names of functions from the math module, for example
+    {'math.sin', 'log'}.
+
+dump_code=True
+    Dump various program representations (source code; bytecode; libjit
+    intermediate code; assembly code) to stdout. Shows you that the compiler
+    is trying to do *something*.
+
+verbose=False
+    Ugly debug messages telling pylibjit's developer stuff about how
+    compilation is progressing. Not useful for others.

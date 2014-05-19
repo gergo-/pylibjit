@@ -1,0 +1,49 @@
+Instructions for building and installing pylibjit. Sorry about the mess.
+
+You will need a standard Linux-ish environment, with Python 3.x (tested with
+3.2 and newer), a GCC-like C compiler, and usual development stuff.
+
+
+1. Build and install libjit (the library that does actual code generation):
+
+    cd libjit
+    ./configure  # optionally: --prefix=/path/for/installation
+    make
+    make install  # possibly as root
+    cd ..
+
+If you specified your own --prefix above, you must tell your linker where to
+find the dynamic library. For example (better solutions may exist):
+
+    # Add this to startup scripts if needed.
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path/to/pylibjit/install/lib/
+
+
+2. Build and install libjit-python (the Python wrapper for libjit):
+
+    cd libjit-python
+    # if libjit was installed in a non-standard location, edit setup.py to
+    # add that path to include_dirs and library_dirs
+    python3 setup.py build
+    # this will install a Python module named 'jit'
+    python3 setup.py install  # use sudo, or use --user to install in home dir
+    cd ..
+
+
+3. Install pylibjit (the actual Python-to-libjit compiler):
+
+    cd pylibjit
+    python3 setup.py install # use sudo, or use --user to install in home dir
+    cd ..
+
+
+4. Test:
+
+    cd examples
+    # Now the following commands should run without error, and the second
+    # one should be about 50 times faster than the first one (while printing
+    # the same result).
+    # The compiled version will dump various representations of the program
+    # to the standard output while it works; this is intended.
+    time python3 spectralnorm-interpret.py 1000
+    time python3 spectralnorm-compile.py 1000

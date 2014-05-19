@@ -1,0 +1,52 @@
+Python bindings for libjit (http://www.gnu.org/software/dotgnu/libjit-doc/libjit.html)
+
+Requires pybindgen (https://code.launchpad.net/~dan-eicher/pybindgen/py3k) to generate the C++ py-bindings.
+
+The default pybindgen branch probably won't work, honestly haven't tried since it doesn't do py-3.x bindings so...
+
+###############################################################################
+##  Building
+###############################################################################
+
+Generate the bindings with pybindgen:
+
+python modulegen.py
+
+Build/install:
+
+python setup.py build
+python setup.py install
+
+...or for py3k:
+
+python3 setup.py build
+python3 setup.py install 
+
+
+###############################################################################
+##  Using
+###############################################################################
+The general idea is to subclass jit.Function and use it like in the libjit C++ docs:
+
+
+import jit
+
+context = jit.Context()
+
+class mul_add_function(jit.Function):
+    def __init__(self, context):
+        super().__init__(context)
+        self.create()
+
+    def create_signature(self):
+        return self.signature_helper(jit.Type.int, jit.Type.int, jit.Type.int, jit.Type.int)
+
+    def build(self):
+        x, y, z = [self.get_param(i) for i in range(3)]
+        self.insn_return(x * y + z)
+
+
+func = mul_add_function(context)
+
+func(2, 3, 4)
+

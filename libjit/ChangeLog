@@ -1,0 +1,3282 @@
+2013-03-04  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-memory-cache.c (jit/jit-memory-cache.c): the function now
+	returns a value (thanks Alexey Galakhov <agalakhov@gmail.com>).
+
+	* include/jit/jit-memory.h, jit/jit-internal.h, jit/jit-memory.c:
+	* jit/jit-memory-cache.c: add jit_function_info_t typedef and use it
+	in the memory manager interface for more clarity (the idea is taken
+	from Alexey Galakhov's proposal but done in a weaker form, without
+	type safety).
+
+2013-02-27  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-dump.c (jit_dump_function): fix error finding function end
+	address (thanks Alexey Galakhov <agalakhov@gmail.com> for spotting).
+
+	* jit/Makefile.am, jit/jit-apply-alpha.h, jit/jit-apply-alpha.c
+	* jit/jit-gen-alpha.h, jit/jit-rules-alpha.h, jit/jit-rules-alpha.c
+	* jit/jit-rules-alpha.ins: Remove all alpha related files from the
+	distro. The files are still in the repo in the attic dir.
+
+2013-02-26  Aleksey Demakov  <ademakov@gmail.com>
+
+	* configure.ac, jit/jit-opcodes.ops, jit/jit-interp-opcode.ops
+	* Makefile.am, jit/Makefile.am, include/jit/Makefile.am: Move ops
+	files from the config to jit dir, remove the config dir.
+
+	* configure.ac: Use build-aux dir for autoconf files. Update the
+	mailing list address.
+
+2012-11-06  Aleksey Demakov  <ademakov@gmail.com>
+
+	* dpas/dpas-scope.c (dpas_scope_destroy): Fix a memory leak in dpas.
+
+	* include/jit/jit-memory.h, jit/jit-internal.h, jit/jit-memory.c
+	* jit-cache.c: restore ability to allocate memory for recompiled
+	functions.
+
+2012-11-05  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jitplus/jit-plus-function.cpp (create): free function signature.
+	* tutorial/t3.c, tutorial/t3.c: free function signature.
+
+2012-10-30  Aleksey Demakov  <ademakov@gmail.com>
+
+	* tutorial/t1.c, tutorial/t2.c: free function signature.
+
+	* jit/jit-block.c (delete_block): fix memory leak.
+
+	* jit/jit-memory-cache.c: rename jit-cache.c
+
+2012-10-20  Aleksey Demakov  <ademakov@gmail.com>
+
+	* include/jit/jit-memory.h, jit/jit-internal.h, jit/jit-memory.c
+	* jit-cache.c: get back to the scheme where function start and end
+	addresses are kept by the memory manager, not in jit_function_t.
+
+2012-10-16  Aleksey Demakov  <ademakov@gmail.com>
+
+	* include/jit/jit-memory.h: add file that defines pluggable memory
+	manager interface.
+	* jit-internal.h, jit/jit-memory.c: add a number of _jit_memory_*
+	pluggable memory wrapper functions. Replace with these wrappers
+	all _jit_cache_* calls.
+	* jit/jit-cache.c (jit_default_memory_manager): add function that
+	gets memory mamnager plugin interface.
+	* jit/jit-cache.h: remove file.
+	* include/jit/jit-context.h:
+	* jit/jit-context.c (jit_context_set_memory_manager): add function.
+
+2012-10-12  Aleksey Demakov  <ademakov@gmail.com>
+
+	* include/jit/jit-util.h, jit/jit-alloc.c (jit_malloc_exec)
+	(jit_free_exec, jit_flush_exec, jit_exec_page_size): remove functions
+	from public API.
+	* jit/jit-internal.h, jit/jit-alloc.c (_jit_malloc_exec)
+	(_jit_free_exec, _jit_flush_exec): make these functions internal.
+
+	* jit/jit-util.c: new file, move here all public util functions from
+	jit/jit-alloc.c, jit/jit-memory.c, jit/jit-string.c.
+
+2012-10-08  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-cache.c, jit/jit-cache.c(_jit_cache_alloc_trampoline)
+	(_jit_cache_free_trampoline, _jit_cache_alloc_closure)
+	(_jit_cache_free_closure): add functions.
+	* jit/jit-function.c (jit_function_create, _jit_function_destroy):
+	use trampoline alloc/free functions.
+
+	* jit/jit-apply.c, include/jit/jit-init.h (jit_get_closure_size)
+	(jit_get_closure_alignment, jit_get_trampoline_size)
+	(jit_get_trampoline_alignment): add functions.
+	* jit/jit-apply.c (jit_closures_supported): for consistency rename
+	function to jit_supports_closures.
+
+2012-10-07  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-function.c (jit_function_create, _jit_function_destroy):
+	* jit/jit-cache.h, jit/jit-cache.c (_jit_cache_alloc_function)
+	(_jit_cache_free_function): allocate and free jit_function structs
+	within cache.
+
+2012-10-04  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-cache.h, jit/jit-cache.c (_jit_cache_start_function):
+	remove the restart_count argument.
+	* jit/jit-cache.h, jit/jit-cache.c (_jit_cache_extend): add
+	function to allocate more cache space.
+	* jit/jit-cache.c (_jit_cache_alloc_data): let be called outside
+	function generation context.
+
+2012-07-29  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-cache.h, jit/jit-cache.c (_jit_cache_start_function)
+	(_jit_cache_end_function, _jit_cache_get_code_break)
+	(_jit_cache_set_code_break, _jit_cache_get_code_limit)
+	(_jit_cache_alloc_data): new API for function allocation.
+	* jit/jit-cache.h, jit/jit-cache.c (_jit_cache_is_full)
+	(_jit_cache_start_method, _jit_cache_end_method)
+	(_jit_cache_alloc, _jit_cache_check_space): remove.
+	* jit/jit-cache.h, jit/jit-rules.h: remove jit_cache_posn struct.
+	Store the cache position data in jit_gencode struct.
+	* jit/jit-rules.h, jit/jit-rules.c: (_jit_gen_check_space)
+	(_jit_gen_alloc): add.
+	* jit/jit-cache.h, jit/jit-cache.c (_jit_cache_get_function):
+	rename from _jit_cache_get_method. 
+
+2012-02-11  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-cache.h, jit/jit-cache.c (_jit_cache_end_method): add
+	result argument that indicates if the code genration will need
+	to be restarted.
+	* jit/jit-cache.h, jit/jit-cache.c (jit_cache_mark_full): remove
+	macro and replace it with direct jit_cache_posn access where
+	appropriate.
+	* jit/jit-cache.h, jit/jit-cache.c (jit_cache_get_posn): likewise.
+	* jit/jit-cache.h, jit/jit-rules-interp.c (jit_cache_native): move
+	macro to where it only used.
+	* jit/jit-cache.h, jit/jit-cache.c: remove other unused stuff.
+
+2012-01-22  Klaus Treichel  <ktreichel@web.de>
+
+	* config/jit-opcodes.ops: Move declaration of obsolete opcodes to
+	the separate include file jit-opcode-compat.h and include this new
+	file instead.
+
+	* include/jit/jit-opcode-compat.h: add new include file for
+	obsolete opcodes.
+
+	* include/jit/Makefile.am: add jit-opcode-compat.h to the include
+	sources.
+
+2012-01-21  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules.h (struct jit_gencode): add offset_encoder field
+	to encode bytecode offsets with jit_varints.
+
+	* jit/jit-internal.h (struct _jit_function): move fields cookie,
+	start, end here from jit_cache_method; add bytecode_offset field
+	to encode bytecode offsets with jit_varints.
+
+	* jit/jit-compile.c (mark_offset, _jit_function_get_bytecode): add
+	functions that use jit_varints for bytecode offset compression.
+
+	* jit/jit-cache.h, jit/jit-cache.c (_jit_cache_get_method):
+	remove cookie argument.
+
+	* jit/jit-cache.h, jit/jit-cache.c (_jit_cache_mark_bytecode)
+	(_jit_cache_set_cookie, _jit_cache_get_start_method)
+	(_jit_cache_get_end_method, _jit_cache_get_native)
+	(_jit_cache_get_bytecode, _jit_cache_get_size): remove functions,
+	get rid of bytecode offset compression and method region machinary.
+
+	* jit/jit-dump.c, jit/jit-function.c, jit/jit-rules-interp.c
+	* jit/jit-except.c, jit/jit-unwind.c: adjust where appropriate for
+	cache API change.
+
+2011-12-18  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/Makefile.am:
+	* jit/jit-varint.h, jit/jit-varint.c: add new files for varaible
+	length int encoding with algorithm similar but not identical to one
+	currently used in jit-cache.c.  The new algorithm in certain cases
+	better compresses unsigned ints.
+
+2011-09-30  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-cache.h, jit/jit-cache.c (_jit_cache_new_region):
+	function removed.
+
+2011-09-03  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-cache.h, jit/jit-cache.c (_jit_cache_get_method_list):
+	function removed.
+
+2011-07-27  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-config.h: added new file as central location for all
+	platform config macros deduced from ./configure and cpp.
+	* jit/Makefile.am: add jit-config.h.
+
+	* include/jit/jit-context.h, jit/jit-context.c
+	(jit_context_supports_threads): removed.
+	* include/jit/jit-init.h, jit/jit-init.c (jit_supports_threads):
+	added function to replace jit_context_supports_threads.
+
+	* include/jit/jit-init.h, jit/jit-init.c
+	(jit_supports_virtual_memory): added new function to check if
+	the jit supports virtual memory routines.
+
+	* include/jit/jit-vmem.h, jit/jit-vmem.c (jit_vmem_init)
+	(jit_vmem_page_size, jit_vmem_round_up, jit_vmem_round_down)
+	(jit_vmem_reserve, jit_vmem_reserve_committed, jit_vmem_release)
+	(jit_vmem_commit, jit_vmem_decommit, jit_vmem_protect): added new
+	files with virtual memory routines.
+	* include/jit/Makefile.am, include/jit/jit.h: add jit-vmem.h
+	* jit/Makefile.am: add jit-vmem.c
+
+	* jit/jit-init.c (jit_init): call jit_vmem_init().
+
+2011-07-10  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-reg-alloc.c (choose_output_register, _jit_regs_assign):
+	fix handling of explicitely assigned registers.
+
+	* jit/jit-rules-x86.c (shift_reg): remove function.
+	* jit/jit-rules-x86.ins (JIT_OP_ISHL, JIT_OP_ISHR, JIT_OP_ISHR_UN):
+	rewrite rules with explicit assignment to "ecx" register, don't use
+	shift_reg() function.
+
+2011-07-02  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-compile.c (compile_block): amend debug info
+
+2010-11-28  Klaus Treichel  <ktreichel@web.de>
+
+	* config/jit-opcodes.ops: Set the destination value type for the
+	address_of_label opcode.
+
+	* jit/jit-dump.c (jit_dump_insn): Print the destination value for
+	the address_of_label opcode.
+
+2010-11-07  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-cache.h: Fix comment for _jit_cache_get_end_method.
+
+2010-10-24  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-reg-alloc.c (_jit_regs_alloc_global): Set in_global_register
+	on global register assignment.
+
+2010-10-04  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-internal.h: Add missing typedef in the declaration of the
+	_jit_intrinsic_signature enumaeration. (Really Noah Lavine)
+
+2010-09-21  Klaus Treichel  <ktreichel@web.de>
+
+	* config/jit-opcodes.ops: Add definitions for the opcode's
+	intrinsics.
+
+	* jit/Makefile.am: Add jit-opcode-apply.c to the sources.
+
+	* jit/jit-internal.h (enum _jit_intrinsic_signature): Declare the
+	various intrinsic signatures.
+	(struct _jit_intrinsic_info): Declare structure to hold the intrinsic
+	information for an opcode.
+
+	* jit/jit-opcode-apply.c: Add support for constant folding.
+
+	* tools/gen-ops-parset.y, tools/gen-ops-scanner.l: Add support for
+	generating the opcode intrinsic table.
+
+2010-09-12  Klaus Treichel  <ktreichel@web.de>
+
+	* config/jit-opcodes.ops: Remove the *eq_inv and *ne_inv float
+	compare a branch opcodes because they behave exactly the same as
+	the corresponding opcodes without the _INV suffix.
+	Add macros to map the removed opcodes to their counterparts without
+	the _INV suffix.
+
+	* jit/jit-insn.c (jit_insn_to_not_bool): Replace the mappings
+	to *EQ_INV and *NE_INV by mappings to *EQ and *NE.
+	Remove the mappings for *EQ_INV and *NE_INV.
+	(jit_insn_branch_if): likwise
+	(jit_insn_branch_if_not): likewise
+
+	* jit/jit-interp.c (_jit_run_function): Remove handling of
+	the *EQ_INV and *NE_INV opcodes.
+
+	* jt/jit-rules-interp.c (_jit_gen_insn): Remove the *EQ_INV
+	and *NE_INV cases.
+
+	* jit/jit-rules-x86-64.ins.c: Remove handling of the *EQ_INV and *NE_INV
+	opcodes.
+
+2010-08-10  Klaus Treichel  <ktreichel@web.de>
+
+	* config/jit-opcodes.ops: Fix arg1 for the address_of opcode.
+
+2010-08-09  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-gen-x86-64.h: Add macros for the cvttss2si and cvttsd2si
+	instructions.
+
+	* jit-rules-x86-64.ins  (JIT_OP_FLOAT32_TO_INT,
+	JIT_OP_FLOAT32_TO_UINT, JIT_OP_FLOAT32_TO_LONG,
+	JIT_OP_INT_TO_FLOAT32, JIT_OP_UINT_TO_FLOAT32,
+	JIT_OP_LONG_TO_FLOAT32, JIT_OP_FLOAT64_TO_FLOAT32,
+	JIT_OP_FLOAT64_TO_INT, JIT_OP_FLOAT64_TO_UINT,
+	JIT_OP_FLOAT64_TO_LONG, JIT_OP_INT_TO_FLOAT64,
+	JIT_OP_UINT_TO_FLOAT64, JIT_OP_LONG_TO_FLOAT64,
+	JIT_OP_FLOAT32_TO_FLOAT64: Add support for these new opcodes.
+
+2010-08-08  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-rules-x86.ins (JIT_OP_FLOAT32_TO_INT,
+	JIT_OP_FLOAT64_TO_INT, JIT_OP_FLOAT32_TO_LONG,
+	JIT_OP_FLOAT64_TO_LONG, JIT_OP_INT_TO_FLOAT32,
+	JIT_OP_INT_TO_FLOAT64, JIT_OP_UINT_TO_FLOAT32,
+	JIT_OP_UINT_TO_FLOAT64, JIT_OP_LONG_TO_FLOAT32,
+	JIT_OP_LONG_TO_FLOAT64, JIT_OP_ULONG_TO_FLOAT32,
+	JIT_OP_ULONG_TO_FLOAT64, JIT_OP_FLOAT64_TO_FLOAT32,
+	JIT_OP_FLOAT32_TO_FLOAT64: Add support for these new opcodes.
+
+	* tests/math.pas: Add tests for integer/float conversions.
+
+2010-08-07  Klaus Treichel  <ktreichel@web.de>
+
+	* config/jit-opcodes.ops: Add opcodes for direct conversions from
+	and to 32-bit and 64-bit floatingpoint values.
+
+	* jit/jit-interp.c (_jit_run_function): Add support for the new
+	opcodes.
+
+	* jit/jit-insn.c: Add the new opcodes to the convert_intrinsics
+	table.
+	(jit_insn_convert): Use the new opcodes for conversions from and to
+	32-bit and 64-bit floatingpoint values.
+
+2010-08-06  Klaus Treichel  <ktreichel@web.de>
+
+	* configure.ac: Add checks for the rint, round and trunc c library
+	functions.
+
+	* config/jit-opcodes.ops: (ftrunc, dtrunc, nftrunc): Add opcode
+	definitions for the new trunc instruction.
+
+	* dpas/dpas-builtin.c: Add new Trunc builtin.
+
+	* include/jit/jit-insn.c (jit_insn_trunc): Add prototype.
+
+	* include/jit/jit-intrinsic.h (jit_float32_trunc, jit_float64_trunc,
+	jit_nfloat_trunc): Add prototypes.
+
+	* jit/jit-insn.c (jit_insn_trunc): Add new float rounding function.
+	Refine comments for the rounding functions.
+
+	* jit/jit-interp.c (_jit_run_function): Add support for the new
+	trunc opcodes.
+
+	* jit/jit-intrinsic.c: Nove float rounding intrinsics to one block
+	and refine conmments.
+	(jit_float32_rint): Use rintf or rint if available.
+	(jit_float64_rint): Use rint if available.
+	(jit_nfloat_rint): Use rintl if available.
+	(jit_float32_round): Use roundf or round if available.
+	(jit_float64_round): Use round if available.
+	(jit_nfloat_round): Use roundl if available.
+	(jit_float32_trunc, jit_float64_trunc, jit_nfloat_trunc): Add new
+	rounding intrinsics for rounding float values towards zero.
+
+	* jit/jit-symbol.c: Add the new intrinsics jit_float32_trunc,
+	jit_float64_trunc and jit_nfloat_trunc to the symbol table.
+
+	* tests/math.pas: Add tests for the new trunc insn.
+
+	* include/jit/jit-plus.h: Add jit_function insn_trunc member.
+
+	* jitplus/jit-plus-function.cpp (insn_trunc): Implement wrapper for
+	the new trunc insn.
+
+2010-08-04  Klaus Treichel  <ktreichel@web.de>
+
+	* include/jit/Makefile.am: Don't include jit-arch.h in the
+	distribution.
+
+	* tools/gen-apply.c: Include a local copy of jit-arch.h instead of
+	the one in the include dir because that one is not yet present in
+	the build process.
+
+	* tools/Makefile.am: Create a local symbolic link jit-arch.h to
+	the arch specific header in the include dir.
+
+2010-08-03  Klaus Treichel  <ktreichel@web.de>
+
+	* Makefile.am: Add config to the subdirectories.
+
+	* configure.ac: Add config/Makefile the the makefiles to generate.
+
+	* include/jit/Makefile.am: Add jit-opcode.h to BUILT_SOURCES and
+	DISTCLEANFILES. Add the rule to generate jit-opcodes.h.
+
+	* include/jit/jit-opcode.h: Delete because it will be generated.
+
+	* jit/Makefile.am: Add jit-opcode.c, jit-interp-opcode.c and
+	jit-interp-opcode.h to BUILT_SOURCES.
+	Add jit-interp-opcode.c and jit-interp-opcode.h to libjit_la_SOURCES.
+	Add rules to generate jit-opcode.c, jit-interp-opcode.c and
+	jit-interp-opcode.h.
+	Adjust rule to generate jit-interp-labels.h. 
+
+	* jit/jit-dump.c: Remove the extern declaration of the interpreter
+	opcode table.
+
+	* jit/jit-interp.h: Replace the opcode declaration by including
+	the generated file.
+
+	* jit/jit-opcode.c: Delete because its generated now.
+
+	* jit/jit-interp.c: Adjust names of interpreter specific opcodes.
+
+	* jit/jit-rules-interp.c: Likewise.
+
+	* jit/mklabel.sh: Adjust for opcode name change of interpreter
+	specific opcodes.
+
+	* tools/.gitignore: Add new built files.
+
+	* tools/Makefile.am: Add rules to build gen-ops.
+
+	* tools/gen-ops-parser.y, tools/gen-ops-scanner.l: Add opcode table
+	generator.
+
+	* config/Makefile.am: Added
+
+	* config/jit-opcodes.ops: Add definition source of the bastic
+	libjit opcodes.
+
+	* config/jit-interp-opcodes.ops: Add definition source of the
+	interpreter specific libjit opcodes.
+
+	* include/jit/.gitignore, jit/.gitignore: Add new built files to
+	the ignore list.
+
+2010-05-31  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-block.c: allow empty block branch optimization for blocks
+	used both in branch insns and in address-of insns. Branch labels are
+	split from address-of labels and become eligible for optimization
+	while the address-of labels stay with the original block.
+
+2010-05-22  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-apply-x86-64.h (JIT_MEMCPY): fix build for MacOS X.
+
+2010-05-15  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-instrinsic.c ((jit_float32_to_int, jit_float32_to_uint,
+	jit_float32_to_long, jit_float32_to_ulong, jit_float32_to_int_ovf,
+	jit_float32_to_uint_ovf, jit_float32_to_long_ovf,
+	jit_float32_to_ulong_ovf, jit_float64_to_int, jit_float64_to_uint,
+	jit_float64_to_long, jit_float64_to_ulong, jit_float64_to_int_ovf,
+	jit_float64_to_uint_ovf, jit_float64_to_long_ovf,
+	jit_float64_to_ulong_ovf, jit_int_to_float32, jit_int_to_float64,
+	jit_uint_to_float32, jit_uint_to_float64, jit_long_to_float32,
+	jit_long_to_float64, jit_ulong_to_float32, jit_ulong_to_float64,
+	jit_float32_to_float64, jit_float64_to_float32): Add intrinsics for
+	direct conversion from float32 and float64 to the various integer
+	types and float32 to float64 and vice versa.
+
+	* include/jit/jit-intrinsic.h: Add the prototypes for the new
+	intrinsics.
+
+	* jit/jit-symbol.c: Add the new intrinsics to the symbol table.
+
+	* jit/jit-value.c (jit_constant_convert): Use the new intrinsics in
+	constant conversions.
+
+	* jit/jit-block.c (jit_block_get_next_label): Fix comment for texinfo.
+
+	* tools/gen-apply.c: Fix strict-alias-rules in returning struct tests.
+
+2010-05-08  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-block.c (_jit_block_clean_cfg): Don't merge an empty block
+	if the block's address was used.
+
+2010-01-24  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-insn.c (jit_insn_branch_if, jit_insn_branch_if_not): Fix
+	accesses to possibly freed memory.
+
+2009-12-09  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-block.c (_jit_block_record_label): bail out on previously
+	assigned label.
+
+	* jit/jit-block.c (merge_empty): fix label merging.
+
+	* jit/jit-internal.h, jit/jit-insn.c (jit_insn_address_of_label)
+	* jit/jit-block.c (_jit_block_record_label_flags): flag labels that
+	are taken address of.
+
+	* jit/jit-block.c (eliminate_unreachable, _jit_block_clean_cfg):
+	do not optimize away blocks with labels flagged as being taken
+	address of.
+
+2009-11-01  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-block.c (_jit_block_clean_cfg): implement the "combine" part
+	of cleanup algorithm.
+
+2009-10-31  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-compile.c (_JIT_RESULT_TO_OBJECT, _JIT_RESULT_FROM_OBJECT):
+	Fix compiler warnings on systems where sizeof(int) != sizeof(void *)
+
+	* jit/jit-rules-x86-64.c (fixup_alloca): Added to handle alloca
+	fixups with param area enabled.
+	(_jit_gen_epilog): Generate the epilog differenty if the stackpointer
+	was changed during code generation with param area enabled.
+
+	* jit/jit-rules-x86-64.h: Add the alloca_fixups to the
+	extra_gen_state.
+
+	* jit/jit-rules-x86-64.ins: Add support for JIT_OP_ALLOCA.
+	(alloca support based on a patch from Peter Lobsinger, thanks)
+
+2009-10-30  Aleksey Demakov  <ademakov@gmail.com>
+
+	* include/jit/jit-function.h, jit/jit-function.c
+	(jit_function_labels_equal): add function that checks if two labels
+	belong to the same basic block.
+
+	* jit/jit-reg-alloc.h, jit/jit-reg-alloc.c
+	(_jit_regs_clear_all_outgoing): add function.
+	* jit/jit-compile.c (compile_block): use _jit_regs_clear_all_outgoing
+	after each function call.
+
+	* include/jit/jit-except.h (JIT_RESULT_CACHE_FULL): add result code.
+	* jit/jit-cache.h, jit/jit-cache.c (_jit_cache_check_space): add
+	function to check the available cache space.
+	* jit/jit-compile.c: use internal exception to handle the cache full
+	condition.
+	* jit/jit-reg-alloc.h, jit/jit-reg-alloc.c, jit/jit-rules-alpha.c,
+	* jit/jit-rules-arm.c, jit/jit-rules-interp.c, jit/jit-rules-x86.c,
+	* jit/jit-rules-x86-64.c, tools/gen-rules-parser.y: use internal
+	exceptions to signal the cache full condition and other codegen
+	errors.
+	* jit/jit-reg-alloc.h, jit/jit-reg-alloc.c (_jit_regs_inst_ptr)
+	(_jit_regs_end): remove functions.
+
+2009-10-13  Gopal V  <gopalv@php.net>
+
+	* jit/jit-insn.c (jit_insn_branch_if_not,jit_insn_branch_if): Redo
+	last patch to use the branch instructions, but without removing the
+	actual compare step (Aleksey's suggestion).
+
+2009-10-09  Gopal V  <gopalv@php.net>
+
+	* jit/jit-insn.c (jit_insn_branch_if_not,jit_insn_branch_if): Remove
+	the premature optimization of compare & branch operations (thanks 
+	Klaus).
+
+2009-08-04  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-block.c (_jit_block_clean_cfg): avoid jump tables
+	while cleaning branches (thanks Fredrik Ehnbom).
+
+2009-06-10  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules-x86.ins (JIT_OP_BR_LFALSE): add opcode rule.
+
+2009-06-10  Michele Tartara  <mikyt@users.sourceforge.net>
+
+	* jit/jit-rules-x86.ins (JIT_OP_BR_LTRUE): add opcode rule.
+
+2009-06-05  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-compile.c (jit_function_compile) 
+	(jit_function_compile_entry, jit_function_setup_entry) 
+	(_jit_function_compile_on_demand): new file, move all compile
+	functions here from jit-function.c.
+
+	* jit/jit-compile.c (jit_compile, jit_compile_entry): add new
+	functions that do exactly the same as jit_function_compile and
+	jit_function_compile_entry but return JIT_RESULT_ error code.
+
+	* jit/jit-compile.c (jit_optimize): add function to optimize IR.
+
+	* include/jit/jit-function.h: add optimization level constants
+	JIT_OPTLEVEL_NONE and JIT_OPTLEVEL_NORMAL.
+	* jit/jit-function.c (jit_function_create) set JIT_OPTLEVEL_NORMAL
+	optimization level by default.
+	* jit/jit-function.c (jit_function_get_max_optimization_level):
+	return JIT_OPTLEVEL_NORMAL.
+	* jit/jit-internal.h (struct _jit_function): add is_optimized field
+	to _jit_function struct.
+
+	* jit/jit-compile.c (compile): catch internal exceptions.
+	* jit/jit-block.c: use internal exceptions instead of return codes
+	for CFG error handling.
+
+2009-05-10  Aleksey Demakov  <ademakov@gmail.com>
+
+	* include/jit/jit-except.h (JIT_RESULT_UNDEFINED_LABEL):
+	* jit/jit-except.c (jit_exception_builtin): add new builtin
+	exception.
+
+	* jit/jit-internal.h (struct _jit_label_info): add srtuct.
+	(struct _jit_builder): replace label_blocks with label_info.
+
+	* jit/jit-block.c (_jit_block_record_label):
+	* jit/jit-dump.c (jit_dump_function):
+	* jit/jit-insn.c (jit_insn_label): allow more than one label per
+	basic block.
+
+	* include/jit/jit-block.h:
+	* jit/jit-block.c (jit_block_get_next_label): add function.
+
+2009-05-09  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-internal.h, jit/jit-block.c, jit/jit-insn.c,
+	* jit/jit-function.c: allocate insns as individual array for each
+	basic block instead of using common per-function pool.
+
+	* jit/jit-internal.h, jit/jit-block.c: keep useless basic blocks
+	in the deleted_blocks list instead of freeing them immediately as
+	these blocks still may be referenced from elsewhere, for instance,
+	from jit_value_t structs.
+
+	* jit/jit-internal.h, jit/jit-block.c (_jit_block_is_final): add
+	function to check if the given block is the last one.
+	* jit/jit-rules-alpha.c, jit/jit-rules-arm.c, jit/jit-rules-x86.c,
+	* jit/jit-rules-x86-64.c (jump_to_epilog): use _jit_block_is_final.
+
+2009-04-29  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-block.c (_jit_block_build_cfg, _jit_block_clean_cfg): add
+	functions to build and clean control flow graph.
+	* jit/jit-block.c, jit-live.c (_jit_block_peephole_branch): remove
+	function superseded by jit_block_clean_cfg().
+	* jit/jit-internal.h, jit/jit-block.c:
+	* jit/jit-function.c, jit/jit-insn.c: add control flow graph edges
+	to basic blocks, streamline basic block handling.
+
+	* jit/jit-block.c (jit_block_get_label): return jit_label_undefined
+	instead of zero on error.
+	* jit/jit-insn.c (jit_insn_call_finally): create a new block after
+	JIT_OP_CALL_FINALLY.
+	* jit/Makefile.am (libjit_la_SOURCES): remove jit-cfg.[ch].
+
+2009-04-24  Michele Tartara  <mikyt@users.sourceforge.net>
+
+	* jit/jit-gen-arm.h (arm_mov_reg_float): fix typo.
+	* jit/jit-rules-arm.c (_jit_gen_load_value): fix load logic.
+
+2009-04-22  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-insn.c (jit_insn_call, jit_insn_call_indirect) 
+	(jit_insn_call_indirect_vtable, jit_insn_call_native): don't end
+	basic block before a function call, rather end it after the call if
+	the call may throw some exception.
+	* jit/jit-function.c (compile_block): spill all registers before
+	calls.
+
+2009-04-21  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-dump.c (jit_dump_insn): fix "call_finally" dump.
+
+2009-04-16  Michele Tartara  <mikyt@users.sourceforge.net>
+
+	* jit/jit-rules-arm.c: ARM backend fixes.
+
+2009-04-16  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-reg-alloc.c (set_regdesc_flags): fix bug reported by
+	jan@wedesoft.de.
+
+2009-04-05  Michele Tartara  <mikyt@users.sourceforge.net>
+
+	* jit/jit-type.c (perform_layout): let struct alignment be greater
+	than alignment of every indvidual field.
+
+2009-03-28  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules.h (jit_reg_name, jit_reg_flags, jit_reg_code); add
+	convenience macros for register info access.
+	* jit/jit-rules.h, jit/jit-rules-interp.c, jit/jit-rules-x86.c,
+	* jit/jit-rules-arm.c (_jit_reg_get_pair, jit_reg_get_pair): add
+	function and macro for finding register pair.
+	* jit/jit-reg-alloc.c: replace use of _jit_regs_needs_long_pair with
+	jit_reg_get_pair().
+	* jit/jit-reg-alloc.h, jit/jit-reg-alloc.c (_jit_regs_get_cpu)
+	(_jit_regs_needs_long_pair): remove unused functions.
+
+2009-03-25  Michele Tartara  <mikyt@users.sourceforge.net>
+
+	* jit/jit-gen-arm.h (arm_alu_cc_reg): fix a typo.
+	* jit/jit-rules-arm.ins (JIT_OP_IDIV): support negative dividends.
+
+2009-03-24  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules.h (jit_reg_other_reg): add macro.
+	* jit/jit-reg-alloc.c: replace OTHER_REG with jit_reg_other_reg.
+	* jit/jit-rules-x86.c (_jit_gen_load_value): use jit_reg_other_reg.
+	* jit/jit-rules-arm.c (_jit_gen_load_value) 
+	(_jit_gen_load_value_struct): use jit_reg_other_reg.
+
+2009-03-23  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules-arm.ins: minor cleanup.
+
+2009-03-23  Michele Tartara  <mikyt@users.sourceforge.net>
+
+	* jit/jit-gen-arm.h: add more ARM codegen macros including VFP
+	support.
+	* jit/jit-rules-arm.ins: restore ARM FPA rules, implement IDIV and
+	fix MEMSET opcodes.
+	* jit/jit-rules-arm.h, jit/jit-rules-arm.c: more ARM code.
+	* jit/jit-reg-alloc.c (_jit_regs_commit): fix typo.
+
+2009-02-07  Aleksey Demakov  <ademakov@gmail.com>
+
+	* gen-sel-parser.y, gen-sel-scanner.l: remove obsolete files.
+	* tools/Makefile.am: remove gen-sel target.
+	* jit/jit-apply-arm.h (jit_builtin_apply): fix bug and optimize.
+
+2009-02-06  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-apply-x86.h: Add @PLT to the definition of JIT_MEMCPY to
+	prevent set TEXTREL flags in the shared library.
+
+2009-02-06  Michele Tartara  <mikyt@users.sourceforge.net>
+
+	* jit/jit-rules.h: define JIT_BACKEND_ARM on ARM.
+	* tools/gen-apply.c: define PLATFORM_IS_ARM on ARM.
+	* include/jit/jit-arch-arm.h: add ARM arch header.
+	* jit/Makefile.am, jit/jit-rules-arm.ins, jit/jit-rules-arm.sel:
+	replace obsolete .sel file for ARM with .ins file.
+	* jit/jit-apply-arm.h: define jit_indirector_size, jit_should_pad,
+	override jit_builtin_apply.
+	* jit/jit-apply-arm.c (_jit_create_indirector, _jit_pad_buffer): add
+	functions.
+	* jit/jit-apply-func.h: for each jit_builtin_* macro add individual
+	check if it's already defined.
+
+2009-01-30  Peter Fristedt  <fristedt@gmail.com>
+            Kirill Kononenko  <Kirill.Kononenko@gmail.com>
+
+	* tools/gen-apply.c (run_detect_struct_##n): Work around a bug in
+	gcc-4.3 with optimization level 2 and Debian Lenny. Make
+	'jit_nint stack[1]' volatile.
+
+2009-01-01  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-rules-x86-64.ins (JIT_OP_NFLOAT_TO_FLOAT32,
+	JIT_OP_NFLOAT_TO_FLOAT64): Add rules for the case that the
+	destination value is in the stack frame.
+	(JIT_OP_BR_ILT, JIT_OP_BR_ILE, JIT_OP_BR_IGT, JIT_OP_BR_IGE):
+	Handle the comparision with a constant 0 with a test opcode instead
+	of a cmp.
+	(JIT_OP_ISIGN, JIT_OP_LSIGN): Add handling of the integer sign
+	opcodes.
+
+2008-12-21  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-dump.c (jit_dump_function): dump undefined labels as such
+	rather than generating new labels for them.
+
+2008-12-12  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jitruby/*: add Paul Brannan's ruby-libjit.
+
+2008-12-11  Juan Jesus Garcia de Soria  <juanj.g_soria@grupobbva.com>
+
+	* jit/jit-insn.c (jit_insn_call_native): extend small int return
+	values to full ints as native calls sometimes return garbage in MSB
+	of the return register.
+
+2008-12-11  Aleksey Demakov  <ademakov@gmail.com>
+
+	* configure.ac: bump version to 0.1.3
+
+2008-12-10  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-rules-x86-64.c (x86_64_call_code): Load %rax with 8 before
+	doing the call for calls to variadic functions.
+
+	* jit/jit-rules-x86-64.ins (JIT_OP_CALL_INDIRECT,
+	JIT_OP_CALL_VTABLE_PTR): likewise.
+
+2008-12-10  Aleksey Demakov  <ademakov@gmail.com>
+
+	* configure.ac: bump version to 0.1.2
+	* NEWS: update news for the 0.1.2 release
+
+2008-11-23  Arto Bendiken <arto.bendiken@gmail.com>
+
+	* jit/jit-apply-x86.h, tools/gen-apply.c, tools/gen-apply-macosx.h:
+	Mac OS X compatibility fixes.
+
+2008-11-04  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-apply-x86-64.h (jit_builtin_apply): Use r11 for calling
+	the function and pass the constant 8 in rax for the number of SSE
+	registers used to pass values for variadic functions.
+
+	* jit/jit-rules-x86-64.c (_spill_reg): Spill values with sizes
+	less than 4 as jit_type_int on the stack.
+
+2008-10-12  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-unwind.c: fix typos.
+
+	* jit/jit-interp.c (_jit_run_function): adjust exception_pc if
+	exception is generated by a previous instruction.
+
+2008-10-05  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-interp.c (_jit_run_function): fix implementation of the
+	JIT_OP_TRUNC_INT and JIT_OP_TRUNC_UINT opcodes in interpreter.
+
+	* jit/jit-rules-interp.c (_jit_gen_insn): add support of the
+	JIT_OP_INCOMING_REG opcode, interpreter needs it for exception
+	handling.
+
+2008-08-07  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-apply.c jit/jit-insn.c, jit/jit-interp.c,
+	tools/gen-apply.c: Include stdlib.h if available to pick up the
+	declaration of alloca on NetBSD.
+
+2008-07-26  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-rules-x86-64.c (xmm_cmp_reg_imm, xmm_cmp_setcc_reg_imm,
+	xmm_cmp_brcc_reg_imm): Add functions to handle compares with an
+	immediate value.
+
+	* jit/jit-rules-x86-64.ins: Add rules for an immediate value for
+	JIT_OP_FEQ, ..., JIT_OP_DEQ, ... and the float32 and float64
+	conditional branch opcodes.
+
+2008-07-19  Klaus Treichel  <ktreichel@web.de>
+
+	* dpas/dpas-parser.y (handle_boolean_binary): Add macro for binary
+	operators returning a boolean value.
+	(handle_compare_binary): Use handle_boolean_binary instead of
+	handle_binary for non pointer compares. Set the result type to
+	dpas_type_boolean instead of the common type for pointer compares.
+
+	* tests/cond.pas: Add float compare tests where nan values are
+	involved. Add compare tests for the *_inv opcodes.
+	Add the same tests using branches for all float compare opcodes.
+
+	* jit/jit-rules-x86-64.c (xmm_setcc, xmm_cmp_setcc_reg_reg,
+	xmm_brcc, xmm_cmp_brcc_reg_reg, xmm_cmp_brcc_reg_membase): Add
+	functions to handle float compares with consideration of nan values.
+
+	* jit/jit-rules-x66-64.ins: Rewrite the float32 and float64 compare
+	and branch rules using the new functions in jit-rules-x86-64.c.
+	Add the corresponding *_inv rules.
+
+2008-07-06  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-rules-x86-64.ins: Replace the check if an immediate value
+	is a signed 32bit value by using an if clause the new imms32 clause.
+	Flag rules for branch opcodes with the branch option and add the
+	commutative option where appropriate.
+
+2008-07-06  Juan Jesus Garcia de Soria  <juanj.g_soria@grupobbva.com>
+
+	* jit/jit-reg-alloc.c (choose_input_order): take into account global
+	registers to see if it is suitable to exchange input values. This
+	fixes a problem that took place when a commutative op is applied to
+	a value that resides in a global register and is both the dest and
+	the second source value of the op.
+
+2008-05-30  Aleksey Demakov  <ademakov@gmail.com>
+
+	* include/jit/jit-common.h: remove unused jit_function_compiled_t
+	type.
+
+	* include/jit/jit-except.h, include/jit/jit-common.h: move
+	JIT_NO_OFFSET from jit-except.h to jit-common.h.
+
+	* include/jit/jit-unwind.h, jit/jit-unwind.c: new files.
+	* include/jit/jit.h, include/jit/Makefile.am: add jit-unwind.h.
+	* jit/Makefile.am: add jit-unwind.c.
+
+	* jit/jit-except.c (jit_exception_get_stack_trace): re-implement
+	using unwind routines.
+
+2008-05-28  Juan Jesus Garcia de Soria  <juanj.g_soria@grupobbva.com>
+
+	* jit/jit-alloc.c (jit_free_exec): fix VirtualFree arguments.
+
+	* jit/jit-function.c (_jit_function_destroy): free signature on the
+	function destruction.
+
+2008-05-27  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-internal.h (jit_builder_t):
+	* jit/jit-insn.c (initialize_setjmp_block): remove longjmp_label
+	field as useless.
+
+2008-05-26  Klaus Treichel  <ktreichel@web.de>
+
+	* tools/gen-rules-parser.y, tools/gen-rules-scanner.l: Add the imms32
+	and immu32 keywords for 32bit signed and unsigned immediate values.
+
+	* tools/gen-apply.c: Add support for apply return structs where
+	different float types are at different offsets in the return struct.
+
+	* jit/jit-apply.c (closure_handler): Handle return of different float
+	types with different macros.
+
+	* jit/jit-apply-x86.h (jit_builtin_return_float): Adjust macro to
+	the new apply return struct layout.
+	Add the new jit_builtin_return_double and jit_builtin_return_nfloat
+	macros.
+	Fix jit_builtin_return_float macro for MS cl.
+
+	* jit/jit-apply-x86-64.h (jit_builtin_return_float): Adjust macro
+	to the new apply return struct layout.
+	Add the new jit_builtin_return_double and jit_builtin_return_nfloat
+	macros.
+
+	* jit/jit-apply-func.h: Add the new jit_builtin_return_double,
+	jit_builtin_return_nfloat and jit_builtin_return_long macros.
+
+2008-05-26  Juan Jesus Garcia de Soria  <juanj.g_soria@grupobbva.com>
+
+	* include/jit/jit-defs.h.in: define JIT_EXPORT_DATA macro to support
+	win32 DLL symbol import/export idiosyncrasy. On non-win32 this macro
+	is simply "extern".
+	* include/jit/jit-type.h, include/jit/jit-opcode.h: replace "extern"
+	with JIT_EXPORT_DATA in data declaration.
+
+2008-05-24  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-rules-x86-64.c (_jit_gen_prolog, _jit_gen_epilog): Add
+	support for the param area.
+	(_jit_setup_call_stack): Define this function only if not using
+	the param area.
+	(_jit_create_call_setup_insns): Call _jit_fix_call_stack with
+	and without usage of the param area.
+	(_jit_create_call_return_insns): Declare the locals abi and
+	current_param only if built without support of the param area to
+	avoid compiler warnings.
+
+	* jit/jit-rules-x86-64.ins: Add the support of the
+	JIT_OP_SET_PARAM_* opcodes for param area support.
+
+	* jit/jit-rules-x86-64.h: Define JIT_USE_PARAM_AREA and do some
+	code cleanup and reformatting.
+
+2008-05-23  Juan Jesus Garcia de Soria  <juanj.g_soria@grupobbva.com>
+
+	* jit/jit-alloc.c (jit_malloc_exec, jit_free_exec): on win32 use
+	VirtualAlloc and VirtualFree to allocate/free executable memory.
+
+2008-05-23  Klaus Treichel   <ktreichel@web.de>
+
+	* dpas/dpas-scanner.l, tools/gen-rules-scanner.l,
+	tools/gen-sel-scanner.l: Define YY_NO_UNISTD_H if unistd.h is not
+	available to prevent flex from including unistd.h.
+
+	* include/jit/jit-arch-x86.h, include/jit/jit-arch-x86.h: Fix the
+	 definition of _JIT_ARCH_GET_CURRENT_FRAME for MS cl. Use a
+	temporary value for ebp/rbp because cl doesn't like arguments like
+	f->x in the __asm statements.
+
+	* jit/jit-rules-x86.ins: Move declaration of patch to the start of
+	the block in JIT_OP_ULONG_TO_NFLOAT to be ANSI C compliant.
+
+2008-05-21  Aleksey Demakov  <ademakov@gmail.com>
+
+	* include/jit/jit-walk.h (jit_get_next_frame_address): use
+	JIT_ARCH_GET_NEXT_FRAME if defined, use gcc syntax only if
+	defined __GNUC__.
+
+2008-05-12  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-apply-x86-64.h: Include jit/jit-common.h instead of
+	jit-internal.h to get the definition of the libjit types.
+
+2008-05-08  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules-x86.ins: 
+	* jit/jit-rules-x86-64.ins: 
+	* jit/jit-function.c (compile_block): let register allocator see
+	JIT_OP_INCOMING_REG and JIT_OP_RETURN_REG instructions so it can
+	free unused values on these instructions rather than on the block
+	end.
+
+	* jit/jit-reg-alloc.c (_jit_regs_set_incoming): it is not possible
+	to correctly spill the old register value at this point so do not
+	attempt this and do not promise this.
+
+2008-05-04  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-reg-alloc.c (_jit_regs_set_outgoing): Set the outgoing
+	register inhibited regardless if the value was already in the
+	register or not.
+
+	* jit/jit-insn.c (jit_insn_check_null): Emit the check only if the
+	value to check is no nint constant != 0.
+
+2008-04-22  Aleksey Demakov  <ademakov@gmail.com>
+
+	* configure.in: update to modern autoconf, rename to configure.ac.
+	* configure.ac: renamed from configure.in.
+
+2008-04-20  Klaus Treichel  <ktreichel@web.de>
+
+	* tests/Makefile.am: Add cond.pas to the tests.
+
+	* tests/math.pas: Add tests for more opcodes and execute existing
+	tests for more types.
+
+	* tests/cond.pas: Add tests for conditions.
+
+2008-04-20  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules-x86.ins: fix the sign opcode for longs (based on
+	a patch from Klaus) and slightly modify it for ints.
+
+	* jit/jit-insn.c: some code cleanup:
+	(jit_insn_neg, jit_insn_abs, jit_insn_sign): for these unary ops
+	replace common_binary()	with more basic function calls that should
+	suffice.
+	(jit_insn_is_nan, jit_insn_is_finite, jit_insn_is_inf): return
+	false for non-floating point values and do not use common_binary()
+	as well.
+
+2008-04-19  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-insn.c (jit_insn_sign): the dest value of the sign insn
+	has to be int regardless of the argument type.
+
+2008-04-13  Klaus Treichel  <ktreichel@web.de>
+
+	* include/jit/Makefile.am:
+	* include/jit/jit-arch-x86-64.h: new file with x86-64 architecture
+	specific macros for stack frame inspection.
+
+	* configure.in: check for x86-64 arch, add -fno-omit-frame-pointer
+	flag.
+
+	* include/jit/jit-walk.h: use _JIT_ARCH_GET_RETURN_ADDRESS and
+	_JIT_ARCH_GET_CURRENT_RETURN if available.
+
+	* jit/jit-gen-x86-64.h: Add additional macros for saving and
+	restoring the fpu controlword and the mxcsr register. Add
+	additional SSE conversion macros. Add SSE compare macros.
+	Add macros for the SSE bit operations on packed values.
+	Add macros for SSE sqrt and rounding. Add macros for fpu rounding.
+
+	* jit/jit-rules-x86-64.c: Add the dreg register class and functions
+	to handle rounding and SSE bit opcodes on packed values.
+
+	* jit/jit-rules-x86-64.ins: Add INT_TO_NFLOAT, LONG_TO_NFLOAT,
+	FLOAT32_TO_NFLOAT, FLOAT64_TO_NFLOAT.
+	Rewrite NFLOAT_TO_INT and NFLOAT_TO_LONG to use the new functions
+	in jit-rules-x86-64.c. Add handling of ABS, NEG and float compares.
+
+2008-03-31  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-rules-x86.ins: Fix the sign opcode for integers and the
+	constant case for longs.
+
+2008-03-30  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-gen-x86-64.h: Add macros for the test, imul, cdw/cdq/cqo
+	and cmov instructions.
+
+	* jit/jit-intrinsic.c (jit_int_sign, jit_long_sign): Return 1 for
+	values greater than 0 instead of 0.
+
+	* jit/jit-rules-x84-64.ins: Add IMUL, IDIV, IDIV_UN, IREM, IREM_UN,
+	LMUL, LDIV, LDIV_UN, LREM and LREM_UN opcodes. Replace the compares
+	with zero done with or with test instructions.
+
+2008-03-29  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-rules-x86.ins: Fix signed division of negative values by a
+	constant positive power of two.
+
+2008-03-29  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-apply.c, tools/gen-apply.c: changes to apply needed for
+	x86-64 support.
+
+2008-03-25  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-interp.c (jit_function_apply_vararg): fix return code	if
+	exception is thrown.
+
+2008-03-24  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-function.c (cleanup_on_restart): Reset the epilog_fixup.
+
+	* jit/jit-apply-x86-64.c: Move parameter passing handling from
+	jit-rules-x86-64.c to this file because they are needed by apply too.
+
+	* jit/jit-apply-x86-64.h: Add declarations needed for parameter passing.
+
+	* jit/jit-gen-x86-64.h: Add macros for shift opcodes, register exchanges
+	and moves from general purpose register to xmm register and vice versa.
+
+	* jit/jit-rules-x86-64.c: Move parameter handling to jit-apply.x86-64.c.
+	Add handling of structs in _jit_gen_load_value and _spill_reg. Fix more
+	parameter passing issues.
+
+	* jit/jit-rules-x86-64.ins: Do some cleanup. Add casts to jit_nint when
+	checking for valid ranges. Add integer and long shift opcodes. Add
+	memset opcode.
+
+2008-03-04  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/Makefile.am: Add jit-rules-x86-64.inc to CLEANFILES to fix
+	make distcheck.
+
+2008-03-03  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-cache.h, jit/jit-cache.c, jit/jit-function.c (compile):
+	modify cache algorithm to allow a method to occupy more than one
+	cache page.
+
+	* include/jit/jit-context.h: add JIT_OPTION_CACHE_MAX_PAGE_FACTOR
+	option.
+	* jit/jit-context.c (_jit_context_get_cache): use that option.
+
+2008-03-02  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-apply-x86-64.h: define the sizes for indirector and
+	redirector.
+
+	* jit/jit-apply-x86-64.c: do either a memory indirect, RIP relative
+	or register relative jump in the redirector whatever is appropriate
+	for the address location in _jit_create_indirector.
+
+	* jit/jit-gen-x86-64.h: add lots of additional code generation
+	macros and fix some bugs.
+
+	* jit/jit-insn.c: don't mark the current block dead after throwing
+	an exception in jit_insn_call_intrinsic because this is handled in
+	jit_insn_call_native if the flag JIT_CALL_NORETURN is specified.
+
+	* jit/Makefile.am: Add the new files jit-rules-x86-64.c,
+	jit-rules-x86-64.h and jit-rules-x86-64.ins to the sources.
+
+	* jit/jit-rules.h: add the native backend for X86_64.
+
+	* jit/jit-rules-x86-64.c, jit/jit-rules-x86-64.h,
+	jit/jit-rules-x86-64.ins: add the first native  code generation for
+	X86_64.
+
+	* jit/jit-value.c: create a nint constant for long/ulong types in
+	jit_value_create_constant on 64bit archs.
+
+2008-02-29  Aleksey Demakov  <ademakov@gmail.com>
+
+	* include/jit/jit-plus.h, jitplus/jit-plus-jump-table.cpp:
+	* jitplus/jit-plus-function.cpp, jitplus/Makefile.am: add
+	jit_jump_table class and jit_function::insn_jump_table method, add
+	jit-plus-jump-table.cpp file, move jit_build_exception class from
+	jit-plus-function.cpp to jit-plus.h.
+
+2008-02-26  Aleksey Demakov  <ademakov@gmail.com>
+
+	* use LGPL 2.1 for all the rest - dpas, tools, tests, and doc.
+
+2008-02-06  Aleksey Demakov  <ademakov@gmail.com>
+
+	* auto_gen.sh: by popular demand restore this file although it only
+	does "autoreconf -i -f" now.
+
+	* tools/gen-rules-parser.y: update license and copyright notices.
+
+2008-01-30  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/Makefile.am: Fix typo in my last commit.
+
+2008-01-29  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-apply-x86-64.h: Fix the macros jit_builtin_return_int
+	and jit_builtin_return_float.
+
+	* jit/jit-apply-x86-64.c: Add closure support for x86_64.
+
+	* jit/jit-gen-x86-64.h: Add first codegeneration macros for x86_64.
+
+	* jit/Makefile.am: Add the two new files to the libjit sources.
+
+2008-01-26  Aleksey Demakov  <ademakov@gmail.com>
+
+	* auto_gen.sh: remove, use "autoreconf -i -f" instead (thanks
+	Dalibor for the hint).
+	* INSTALL, config.guess, config.sub, install-sh, missing: remove
+	from CVS, these files are automatically generated by autoreconf.
+	* mkinstalldirs: remove, this file is obsolete.
+
+2008-01-25  Aleksey Demakov  <ademakov@gmail.com>
+
+	* include/*, jit/*, jitplus/*, jitdynamic/*: use LGPL 2.1.
+	* doc/libjit.texi: remove "Why GPL?" chapter.
+
+2008-01-22  Aleksey Demakov  <ademakov@gmail.com>
+
+	* COPYING.LESSER: add LGPL v2.1 file.
+
+	* jit/*.c, jitplus/*.cpp, jitdynamic/*.c: fix texinfo markup for
+	parameters. 
+
+2008-01-21 Dalibor Topic <robilad@kaffe.org>
+
+	* jit/Makefile.am (libjit_la_SOURCES): add mising jit-rules-interp.h
+	file.
+
+2008-01-16  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-gen-x86.h: Use the supplied base register instead of
+	register no. 5 (EBP) in x86_memindex_emit for displacements greater
+	than x86_int8 (<-128 or >127).
+
+2008-01-04  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-opcode.c: Add the nint argument to the return_small_struct
+	and flush_small_struct opcodes.
+
+2008-01-03  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-opcode.c: Add the nint argument to the copy_struct opcode.
+
+	* jit/jit-rules-interp.c (_jit_gen_start_block): Fix fixups for
+	interpreter.
+
+2007-12-31  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-apply-x86-64.h: Swap source and destination for the call
+	of jit_memcpy in jit_builtin_apply so that they are in the correct
+	order.
+
+2007-12-28  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-interp.c: fix JIT_OP_LCMP_UN opcode.
+
+2007-12-28  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-interp.c: Fix the opcodes JIT_OP_LADD, JIT_OP_ISHL,
+	JIT_OP_LSHR_UN, JIT_OP_ICMP_UN, JIT_OP_LCMP and JIT_OP_LCMP_UN in
+	the intpreter backend.
+
+2007-12-24  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-gen-x86.h (x86_alu_reg16_imm): add macro.
+	* jit/jit-rules-x86.ins: add JIT_OP_NFLOAT_TO_INT and
+	JIT_OP_NFLOAT_TO_LONG rules.
+
+2007-12-21  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-internal.h, jit/jit-context.c, jit/jit-function.c: 
+	* jit/jit-interp.c: use on-demand driver for interpreter but skip
+	indirector/redirector stuff for it.
+
+2007-12-20  Aleksey Demakov  <ademakov@gmail.com>
+
+	* include/jit/jit-plus.h: add jit_context::build_start() and
+	jit_context::build_end() methods.
+
+	* include/jit/jit-function.h, jit/jit-function.c
+	(jit_function_recompile): remove.
+	* include/jit/jit-plus.h, jitplus/jit-plus-function.cpp
+	(jit_function::recompile): remove.
+	* tutorial/t3.c, tutorial/t4.cpp: recompile manually
+	instead of using removed recompile functions.
+
+	* doc/libjit.texi: update tutorial.
+
+2007-12-16  Klaus Treichel  <ktreichel@web.de>
+
+	* configure.in: Add support for multi os archs (like x86_64). Put the
+	libraries in the correct directories so that 32- and 64-bit code doesn't
+	get mixed up.
+
+	* jit/jit-apply-x86-64.h: Add some information about the clobber list to
+	jit_builtin_apply and add r10 and r11 to the clobber list because they
+	are not preserved by the callee and we call arbitrary functions here.
+
+	* jit/jit-internal.h: Cast _JIT_ALIGN_TO_TYPE to jit_nuint instead of
+	unsigned because jit_nuint is guaranteed to have the size of a pointer.
+	This fixes compiler warnings on x86_64 too.
+
+2007-11-27  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules-x86.c (_jit_gen_load_value): fix compiler warnings.
+
+2007-11-17  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-insn.c (jit_insn_mark_offset): do not start new block
+	on the bytecode mark. If a mark goes just after another mark then
+	replace the old mark rather than add the new.
+
+	* jit/jit-cache.c (_jit_cache_get_bytecode)
+	(_jit_cache_get_native): fix offset for the last bytecode mark.
+
+2007-11-13  Aleksey Demakov  <ademakov@gmail.com>
+
+	* tools/Makefile.am (noinst_HEADERS): add gen-apply-macosx.h
+
+2007-11-08  Aleksey Demakov  <ademakov@gmail.com>
+
+	* include/jit/jit-plus.h, jitplus/jit-plus-function.cpp (new_label):
+	add c++ wrapper for jit_function_reserve_label.
+
+	* include/jit/jit-plus.h (clear_recompilable): fix a typo.
+
+2007-10-07  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules-x86.ins (JIT_OP_JUMP_TABLE): fix jump table code
+	generation.
+
+	* include/jit/jit-function.h: 
+	* jit/jit-function.c (jit_function_reserve_label): add new function
+	to create labels for jump tables.
+
+2007-06-11  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-insn.c (accumulate_relative_offset): remove.
+	* jit/jit-insn.c (find_base_insn, jit_insn_load_relative)
+	(jit_insn_store_relative, jit_insn_add_relative): add find_base_insn
+	function that should finally optimize relative instructions
+	correctly.
+
+2007-06-10  Aleksey Demakov  <ademakov@gmail.com>
+
+	* tools/gen-rules-parser.y (gensel_output_clauses): alter selection
+	logic so that "reg" rules are chosen over "local" in case the value
+	is used again in the same basic block.
+
+	* jit/jit-rules-x86.ins: tweak COPY rules for bytes, shorts, and
+	ints.
+
+	* jit/jit-live.c (forward_propagation, backward_propagation)
+	(is_copy_insn): do not perform copy propagation if JIT_OP_COPY_INT
+	is used for byte and short values.
+
+2007-05-28  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-live.c (forward_propagation, backward_propagation): do not
+	optimize addressable and volatile values.
+
+2007-05-28  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-live.c (_jit_function_compute_liveness)
+	(forward_propagation, backward_propagation): add simple copy
+	propagation that works only within basic blocks.
+
+	* jit/jit-value.c (jit_value_ref): do not set the live flag here
+	as this	is done in jit-live.c now.
+
+2007-05-26  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-intrinsic.c: Fix conversion from ulong to nfloat for values
+	greater that jit_max_long.
+
+2007-05-26  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-insn.c (jit_insn_store): remove incorrect optimization
+	that eliminates intermediate value without knowledge of its later
+	use.
+
+2007-04-04  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-reg-alloc.c (commit_output_value): fix compilation for
+	archs without register stack (thanks Klaus).
+
+2007-03-04  Aleksey Demakov  <ademakov@gmail.com>
+
+	* configure.in: update working version to "0.1.1".
+
+2007-03-03  Aleksey Demakov  <ademakov@gmail.com>
+
+	* include/jit/Makefile.am: add jit-arch.h to BUILT_SOURCES.
+
+	* doc/Makefile.am: add extract-docs.sh, mkhtml.sh, mkpdf.sh to
+	EXTRA_DIST.
+
+	* configure.in: bump version to 0.1.0.
+	* NEWS: update news for the 0.1.0 release.
+
+2007-02-25  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-reg-alloc.c (adjust_assignment, _jit_regs_gen): the ops
+	that have dest value on x87 stack but have no x87 input values need
+	the dest register to be adjusted after spilling too.
+	(is_register_occupied, clobbers_register): undo is_register_occupied
+	logic introduced 2007-02-12.
+
+2007-02-14  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-function.c (compile_block): check if cache is full and
+	exit if so.
+
+2007-02-13  Aleksey Demakov  <ademakov@gmail.com>
+
+	* doc/texinfo.tex: remove an ancient file version from the tree.
+	automake --add-missing as well as auto_gen.sh add an up-to-date
+	version of it.
+
+	* jit/jit-insn.c, jit/jit-rules-interp.c: 
+	* jitplus/jit-plus-value.cpp, jitplus/jit-plus-function.cpp: fix
+	texinfo comments.
+
+2007-02-12  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-dump.c (jit_dump_function): flush the output stream upon
+	dumping the function.
+
+	* jit/jit-function.c (cleanup_on_restart, reset_value): add new
+	functions to clean up the compilation state on restart.
+	(compile): replace the code that did cleanup on restart with a call
+	to cleanup_on_restart() which does this job more thoroughly.
+
+	* jit/jit-reg-alloc.h, jit/jit-reg-alloc.c: remove _jit_regs_abort()
+	function as the new cleanup-on-restart code makes it superflows.
+
+	* jit/jit-reg-alloc.c (is_register_occupied): add new function;
+	(clobbers_register, spill_clobbered_register, _jit_regs_gen): fix
+	a problem that shows up with the new cleanup method.
+
+	* tools/gen-rules-parser.y (gensel_output_clauses): the conditions
+	for the local and frame patterns are changed. If the value is used
+	before it is defined then both in_frame and in_register	flags are
+	clear. This situation is perfectly valid if there is a backward
+	branch form a point after the definition to a point before the use.
+	So if the value is not a constant and it is not in a register assume
+	that it is on the stack even if the in_frame flag is not set.
+
+2007-02-10  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-function.c: Use the on-demand compilation driver in
+	jit_function_apply too. Return the functions' entry point if the
+	function is allready compiled in jit_function_compile_entry.
+
+2007-02-04  Aleksey Demakov  <ademakov@gmail.com>
+
+	* include/jit/jit-common.h, include/jit/jit-context.h,
+	* include/jit/jit-function.h, jit/jit-internal.h, jit/jit-context.c,
+	* jit/jit-function.c: provide for user defined on-demand compilation
+	driver and delayed function entry point setup.
+
+2007-01-28  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-reg-alloc.c (_jit_regs_gen, set_regdesc_flags): fix bugs
+	introduced 2006-12-30 with loading registers for ternary ops and
+	handling input register thrash.
+
+2007-01-26  Aleksey Demakov  <ademakov@gmail.com>
+
+	* include/jit/jit-arch-x86.h (_JIT_ARCH_GET_CURRENT_FRAME): tweak
+	gcc version of the macro.
+
+	* jit/jit-apply-x86.c (_jit_create_redirector): redirector does not
+	use stack frame so remove frame set up and restore instructions.
+
+2007-01-23  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-internal.h, jit/jit-function.c: remove the closure_entry
+	field from jit_function_t. Find this value on the fly in
+	jit_function_to_closure() and jit_function_to_vtable_pointer()
+	to be equal either to entry_point or indirector fields.
+
+	* jit/jit-rules-alpha.ins, jit/jit-rules-x86.ins: use
+	jit_function_to_closure() instead of the closure_entry field.
+
+2007-01-17  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-reg-alloc.h, jit/jit-reg-alloc.c: complete special x87
+	arithmetic support, for other x87 instructions reverse the order of
+	arguments on the stack.
+
+	* jit/jit-rules-x86.ins: take advantage of regalloc's x87 arithmetic
+	support. Also do not clobber the entire x87 stack for atan, sin, and
+	cos rules.
+
+2007-01-12  Heiko Weiss <heiko.weiss@de.trumpf-laser.com>
+
+	* jit/jit-function.c: Fix a typo in jit_function_from_vtable_pointer
+	which breaks the build if libjit is built in interpreter mode.
+
+2007-01-04  Thomas Cort  <linuxgeek@gmail.com>
+
+	* jit/jit-rules-alpha.c: register class should not include FIXED
+	registers.
+
+	* .cvsignore, tools/.cvsignore, tutorial/.cvsignore: updated
+	the .cvsignore files to ignore some generated files.
+
+2007-01-03  Thomas Cort  <linuxgeek@gmail.com>
+
+	* jit/jit-rules-alpha.c: initialize alpha register classes.
+	Fix signed-ness warnings.
+
+2007-01-02  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules-x86.ins: add JIT_OP_IMIN_UN rule (based on the
+	  patch #5540 by Kirill Kononenko).
+
+	* jit/jit-reg-alloc.c (set_regdesc_value, set_regdesc_register)
+	(choose_output_register): handle EARLY_CLOBBER flag for dest value.
+
+2006-12-30  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-reg-class.c, jit/jit-reg-class.h, jit/Makefile.am: add
+	register classes.
+
+	* jit/jit-rules-x86.c (_jit_init_backend): initialize x86 register
+	classes.
+
+	* jit/jit-reg-alloc.h, jit/jit-reg-alloc.c: specify register class
+	for each value and scratch register. Clean up interface.
+
+	* tools/gen-rules-scanner.l, tools/gen-rules-parser.y: add register
+	class declaration; "reg", "lreg", "freg" are not keywords anymore.
+	"scratch" requires register class specification. "clobber" accepts
+	register class which means all registers in the class are clobbered.
+	Remove "only", "spill_before", "unary", and "binary" keywords.
+	Replace "unary_note" and "binary_note" with "note". Also replace
+	"unary_branch" and "binary_branch" with "branch".
+
+	* jit/jit-rules-alpha.ins, jit/jit-rules-x86.ins: update according
+	to the new rule syntax.
+
+2006-12-20  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-thread.h, jit/jit-thread.c: add _jit_global_lock mutex.
+	* jit/jit-init.c (jit_init): make sure that initialization is done
+	  only once.
+
+2006-12-17  Klaus Treichel  <ktreichel@web.de>
+
+	* include/jit/jit-function.h, jit/jit-function.c: Add the function
+	jit_function_from_vtable_pointer to convert a vtable pointer back to
+	the jit_function_t.
+
+2006-11-29  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-reg-alloc.c (save_value): fix bug freeing stack register
+	that is not on the stack top.
+
+2006-11-27  Kirill Kononenko  <Kirill.Kononenko@gmail.com>
+
+	* jit/jit-rules-x86.c (throw_builtin):
+	* jit/jit-rules-x86.ins (JIT_OP_THROW, JIT_OP_LOAD_PC): directly use
+	the inst variable to get current PC value for the position-dependent
+	code case (patch #5503).
+
+2006-11-27  Aleksey Demakov  <ademakov@gmail.com>
+
+	* include/jit/jit-context.h: add JIT_OPTION_POSITION_INDEPENDENT
+	option.
+	* jit/jit-internal.h (struct _jit_builder): add position_independent
+	field.
+	* jit/jit-function.c (_jit_function_ensure_builder): initialize
+	position_independent field.
+
+	* jit/jit-rules-x86.c (throw_builtin):
+	* jit/jit-rules-x86.ins (JIT_OP_ADDRESS_OF_LABEL, JIT_OP_JUMP_TABLE)
+	(JIT_OP_THROW, JIT_OP_LOAD_PC): add position_independent check and
+	stub missing cases.
+
+2006-11-26  Kirill Kononenko  <Kirill.Kononenko@gmail.com>
+
+	* jit/jit-rules-x86.ins: if JIT_USE_SIGNALS is defined do not emit
+	explicit division by zero check (patch #5278).
+
+2006-11-26  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-reg-alloc.c (choose_output_register): fix global register
+	use cost computation.
+
+	* jit/jit-rules-x86.ins: mark as commutative JIT_OP_IADD,
+	JIT_OP_IMUL, JIT_OP_LADD, JIT_OP_IAND, JIT_OP_IOR, JIT_OP_IXOR,
+	JIT_OP_LAND, JIT_OP_LOR, JIT_OP_XOR rules.
+
+2006-11-25  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-reg-alloc.c (exch_stack_top, free_value): fix freeing
+	stack registers.
+
+2006-11-25  Kirill Kononenko  <Kirill.Kononenko@gmail.com>
+
+	* jit/jit-rules-x86.ins: add JIT_OP_ISIGN and JIT_OP_LSIGN rules
+	(patch #5533), optimize JIT_OP_LNEG rule (patch #5555). [with
+	some modifications by Aleksey Demakov.]
+
+2006-11-11  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules-x86.ins: add JIT_OP_IABS and JIT_OP_LABS rules.
+
+2006-11-04  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules-x86.ins: make comparison opcodes use three-address
+	patterns.
+
+2006-11-01  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-reg-alloc.c (commit_input_value, commit_output_value):
+	do not increment/decrement the top of the register stack in case of
+	fp-value coalescing.
+
+2006-10-23  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules-x86.ins: JIT_OP_EXPAND_INT and JIT_OP_EXPAND_UINT
+	rules were broken for local byte or short values. Fixed by removing
+	the local pattern altogether as the reg pattern produces the same
+	code but without the bug.
+
+2006-10-18  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-reg-alloc.c (clobbers_register, bind_value): enable
+	coalescing of the destination value of a copy operation with the
+	source value in a single register.
+
+	* jit/jit-rules-x86.ins: tag COPY rules with the "copy" keyword
+	and change patterns of TRUNC rules to have a separate destination
+	register.
+
+2006-10-16  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-interp.h, jit/jit-interp.c (_jit_run_function): 
+	* jit/jit-opcode.c, jit/jit-rules-interp.c (_jit_gen_insn): Repair
+	struct handling broken since the last interpreter reorganization,
+	remove unused interpreter opcodes.
+
+	* jit/jit-rules-interp.c (_jit_gen_start_block): check if the fixup
+	position is before the cache end. This prevents segmentation fault
+	when the end of cache block is reached and jit_function_compile()
+	attempts to generate more code (it checks for the cache end way too
+	late).
+
+2006-10-14  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules-interp.c (_jit_create_call_return_insns): fix return
+	code in case of no return value or struct returned via pointer (this
+	is just like 2006-02-20 fix for x86).
+
+	* jit/jit-cfg.c (create_value_entry): an uninitialized value was
+	used (thanks Klaus for spotting).
+
+2006-10-02  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-intrinsic.c: Fix a copy bug in jit_ulong_mul (replace - by *).
+
+2006-09-25  Aleksey Demakov  <ademakov@gmail.com>
+
+	* include/jit/jit-arch-x86.h, include/jit/jit-arch-generic.h: add
+	headers for architecture-specific definitions.
+	(_JIT_ARCH_GET_CURRENT_FRAME): add macro to find the stack frame
+	pointer.
+
+	* include/jit/Makefile.am: create jit-arch.h as a symlink to one of
+	the jit-arch-*.h files depending on the JIT_ARCH value.
+	* configure.in: set JIT_ARCH according to the system architecture.
+
+	* include/jit/jit-walk.h (jit_get_current_frame):
+	* jit/jit-walk.c (jit_get_starting_frame):
+	* tools/gen-apply.c (find_return_offset, detect_frame_offsets): use
+	_JIT_ARCH_GET_CURRENT_FRAME macro if available. This resolves the
+	problem	with gcc 4.1.* where __builtin_frame_address() function is
+	broken (thanks Klaus for identifing the problem).
+
+2006-09-15  Radek Polak <psonek2@seznam.cz>
+
+        * include/jit/jit-insn.h, jit/jit-insn.c, jit/jit-debugger.c: new
+        instruction jit_insn_mark_breakpoint_variable.
+
+2006-09-14  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-reg-alloc.h, jit/jit-reg-alloc.c: remove "old" register
+	allocation code.
+
+	* configure.in: remove --enable-new-reg-alloc option.
+
+	* jit/jit-rules-x86.ins: simplify JIT_OP_RETURN_LONG rule, lift code
+	from load_small_struct() function to JIT_OP_RETURN_SMALL_STRUCT rule.
+	* jit/jit-rules-x86.c: remove load_small_struct() function.
+
+2006-09-09  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-reg-alloc.h, jit/jit-reg-alloc.c:
+	* tools/gen-rules-parser.y: add _JIT_REGS_CLOBBER_STACK flag and use
+	it in the code generated for "only" rules instead of the explicit
+	stack top check followed by the _jit_regs_spill_all() call.
+
+2006-09-02  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-interp.c (_jit_run_function):
+	* jit/jit-rules-interp.c (_jit_gen_insn): remove last traces of
+	register allocation from the interpreter.
+
+2006-08-31  Klaus Treichel  <ktreichel@web.de>
+
+	* configure.in: Replace the deprecated AM_PROG_LIBTOOL with the current
+	AC_PROG_LIBTOOL.
+
+	* jitdynamic/Makefile.am, jitplus/Makefile.am: Add -no-undefined to the
+	LDFLAGS to enable building cygwin/mingw dlls.
+
+2006-08-31  Aleksey Demakov  <ademakov@gmail.com>
+
+	* tools/gen-rules-scanner.l, tools/gen-rules-parser.y: add "frame"
+	keyword that is just like "local" but forces the value out from the
+	register into the stack frame.
+
+	* jit/jit-rules-x86.ins: rewrite JIT_OP_COPY_STORE_BYTE,
+	JIT_OP_ADDRESS_OF, and JIT_OP_COPY_STORE_SHORT rules using the
+	"frame" keyword.
+
+	* jit/Makefile.am, jit/jit-rules-x86.c: remove all references to
+	jit-rules-x86.sel and jit-rules-x86.slc.
+
+	* jit/jit-rules-x86.c: remove mov_memindex_reg_byte() and
+	widen_byte() functions.
+
+2006-08-30  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-interp.h, jit/jit-interp.c, jit/jit-opcode.c,
+	jit/jit-rules-interp.h, jit/jit-rules-interp.c: major change in the
+	internal interpreter instruction set. Now the stack is used only for
+	function arguments. There are three pseudo-registers used instead of
+	the stack for operands. One is used for the destination value, two
+	others are used for the source values. The destination register is
+	spilled after each instruction. This scheme obviates the need for
+	register allocation for the interpreter backend.
+
+	* jit/jit-function.c (jit_function_compile, compile_block): do not
+	make register allocator calls if JIT_BACKEND_INTERP is defined.
+
+2006-08-29  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-function.c (jit_function_from_pc): fix problem with wrong
+	exception handler address for interpreter.
+
+	* jit/jit-insn.c (jit_insn_return, jit_insn_return_ptr): do not pop
+	the setjmp context for the interpreter backend because it takes care
+	of this by itself.
+
+	* jit/jit-rules.h, jit/jit-rules-alpha.c, jit/jit-rules-arm.c,
+	* jit/jit-rules-interp.c, jit/jit-rules-x86.c, jit/jit-reg-alloc.c:
+	move part of the _jit_gen_exch_top() functionality into a separate
+	_jit_gen_move_top() function.
+
+	* include/jit/jit-opcode.h:
+	* jit/jit-opcode.c: add JIT_OPCODE_IS_JUMP_TABLE flag to mark the
+	JIT_OP_JUMP_TABLE opcode.
+
+	* jit/jit-dump.c (jit_dump_insn, dump_interp_code): add jump table
+	dumping.
+
+2006-08-28  Klaus Treichel  <ktreichel@web.de>
+
+	* dpas/Makefile.am, jit/Makefile.am, tests/Makefile.am: Add missing
+	sources to fix creation of tarballs (make dist).
+
+2006-08-25  Yan Burman  <yan_952@hotmail.com>
+
+	* jitdynamic/jit-cpp-mangle.c (mangle_type_gcc3): fix typo in
+	is_unsigned usage (patch #5324)
+
+2006-08-23  Thomas Cort  <linuxgeek@gmail.com>
+
+	* jit/jit-apply-alpha.c jit/jit-apply-alpha.h: Fix jit_redirector_size.
+	alpha_call is 6 instructions, not 1. 5 to load the addr, 1 to call.
+
+	* jit/jit-gen-alpha.h: add macros for fp sign copy and arithmetic.
+
+	* jit/jit-rules-alpha.c: remove TODO() from unused functions.
+
+2006-08-23  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-internal.h (struct _jit_function): change the type of
+	redirector and indirector fields from char array to pointer.
+	* jit/jit-function.c (jit_function_create): allocate the redirector
+	and indirector buffers in the code cache. Call jit_flush_exec on
+	these buffers. This fixes problems on alpha and some x86 linux
+	distros. [This one is based on the initial solution suggested by
+	Kirill Kononenko <Kirill.Kononenko@gmail.com>].
+
+	* jit/jit-rules-x86.c (_jit_gen_redirector): ifdef out as this
+	function is not used with the x86 backend.
+
+	* jit/jit-reg-alloc.c: improve handling of three-address op codes.
+	Now the dest register may re-use one of the input registers while
+	previously it was always assigned to a separate register. Also
+	restructure the code that will be used for better selection of x87
+	instructions (this code was not used before and still is not but
+	this is about to change).
+
+	* jit/jit-rules-x86.ins: rewrite all LOAD_RELATIVE and LOAD_ELEMENT
+	ops for x86 as three-address. Adjust IREM ops so that they work
+	correctly together with the latest allocator changes.
+
+2006-08-22  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-alloc.c: Use mmap and munmap to allocate executable memory
+	where available because memory allocated with malloc is not executable
+	on some archs/distros.
+
+2006-08-21  Thomas Cort  <linuxgeek@gmail.com>
+
+	* jit/jit-rules-alpha.c jit/jit-gen-alpha.h: Add macros for
+	int to fp and fp to int conversions. Use _jit_pad_bufer.
+
+2006-08-20  Thomas Cort  <linuxgeek@gmail.com>
+
+	* jit/jit-apply-alpha.c jit/jit-apply-alpha.h jit/jit-rules-alpha.h
+	jit/jit-rules-alpha.ins jit/jit-rules-alpha.c jit/jit-gen-alpha.h:
+	Remove unnecessary code from the prolog, epilog, redirector, and
+	closure. Implement > and >= opcodes for signed and unsigned values.
+
+2006-08-19  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-reg-alloc.c (set_regdesc_flags): fix a problem with the
+	clobber	flag being ignored. The problem was introduced by the patch
+	from 2006-06-17.
+
+2006-08-15  Thomas Cort  <linuxgeek@gmail.com>
+
+	* jit/jit-rules-alpha.c jit/jit-rules-alpha.h jit/jit-rules-alpha.ins
+	Add a TODO() macro to print unimplemented warnings. Fix some 
+	casting warnings. Implement _jit_gen_redirector(...). Fix
+	JIT_CDECL_WORD_REG_PARAMS to use the correct parameter 
+	registers. Add some stack push and pop instructions.
+
+2006-08-15  Kirill Kononenko  <Kirill.Kononenko@gmail.com>
+
+	* configure.in: add --enable-signals option;
+	* jit/Makefile.am: add jit/jit-signal.c;
+	* jit/jit-signal.c, jit/jit-internal.h: add _jit_signal_init();
+	* jit/jit-init.c: call _jit_signal_init() if JIT_USE_SIGNALS is
+	defined. (patch #5278.)
+
+2006-08-11  Thomas Cort  <linuxgeek@gmail.com>
+
+	* jit/jit-rules-alpha.c jit/jit-rules-alpha.ins Properly handle
+	fixups on alpha. Implement JIT_OP_CALL_EXTERNAL for alpha.
+
+2006-07-29  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-reg-alloc.c (use_cheapest_register): allow a register that
+	contains an input value to be used as a scratch register. The input
+	value in this case is copied to another register. This resolves the
+	problem with JIT_OP_IREM rule that failed to allocate a scratch reg
+	in a very specific case (all EBX, ESI, EDI regs are used as global,
+	dividend is initially in ECX and copied to EAX:EDX pair where x86
+	idiv expects it to be).
+
+	* jit/jit-reg-alloc.c (set_regdesc_flags): fix a bug.
+
+2006-07-23  Thomas Cort  <linuxgeek@gmail.com>
+
+	* jit/jit-apply-alpha.c jit/jit-apply-alpha.h jit/jit-apply-func.h
+	jit/jit-gen-alpha.h jit/jit-rules-alpha.c jit/jit-rules-alpha.h
+	jit/jit-rules-alpha.ins Implement the redirector for alpha. 
+	Continue to implement more functions in jit/jit-rules-alpha.c.
+
+2006-07-15  Thomas Cort  <linuxgeek@gmail.com>
+
+	* jit/jit-apply-alpha.c jit/jit-gen-alpha.h jit/jit-rules-alpha.h
+	jit/jit-rules-alpha.c: Implement closure for alpha. Use jsr 
+	instead of bsr in alpha_call. Clean up prolog and epilog 
+	generation for alpha to be more readable.
+
+2006-07-13  Thomas Cort  <linuxgeek@gmail.com>
+
+	* jit/jit-gen-alpha.h jit/jit-rules-alpha.c jit/jit-rules-alpha.h:
+	Added trap barrier macro alpha_trapb. Implemented 
+	_jit_gen_prolog and _jit_gen_epilog for alpha.
+
+2006-07-12  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-insn.c (jit_insn_move_blocks_to_start): fix problem with
+	wrong order of blocks that were moved from the position just after
+	the init_block and with disappearance of blocks after the empty
+	init_block.
+
+2006-07-12  Thomas Cort  <linuxgeek@gmail.com>
+
+	* README.alpha jit/Makefile.am jit/jit-apply-alpha.c 
+	jit/jit-apply-alpha.h jit/jit-elf-defs.h jit/jit-gen-alpha.h
+	jit/jit-rules-alpha.c jit/jit-rules-alpha.h 
+	jit/jit-rules-alpha.ins /jit/jit-rules.h: Initial import of the
+	code for the alpha port.
+
+2006-07-06  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules-x86.ins: fix division by power of two.
+
+2006-07-05  Aleksey Demakov  <ademakov@gmail.com>
+
+	* configure.in: make new register allocator the default.
+
+	* jit/jit-reg-alloc.c (is_register_alive, compute_spill_cost): fix
+	problem with destroying the end register of a long pair.
+
+2006-07-03  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules-x86.ins: add JIT_OP_LOW_WORD, JIT_OP_EXPAND_INT,
+	JIT_OP_EXPAND_UINT, JIT_OP_INT_TO_NFLOAT, JIT_OP_UINT_TO_NFLOAT,
+	JIT_OP_LONG_TO_NFLOAT, JIT_OP_ULONG_TO_NFLOAT and rewrite
+	JIT_OP_TRUNC_SBYTE, JIT_OP_TRUNC_UBYTE, JIT_OP_LOAD_PC rules.
+
+	* jit/jit-rules-x86.c (_jit_opcode_is_supported): include .inc file
+	instead of .slc if USE_NEW_REG_ALLOC is defined.
+
+2006-06-28  Aleksey Demakov  <ademakov@gmail.com>
+
+	* tools/gen-rules-parser.y (gensel_output_code): 
+	* jit/jit-rules-x86.ins: use $1 for dest register instead of $0
+	for consistency.
+
+2006-06-27  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-insn.c (accumulate_relative_offset): add function that
+	accumulates JIT_OP_ADD_RELATIVE offsets.
+	(jit_insn_store_relative, jit_insn_load_relative)
+	(jit_insn_add_relative): use accumulate_relative_offset() instead
+	of previous_relative() to find the offset from the original address
+	and do not replace the accumulated instructions with JIT_OP_NOP as
+	it was before. The old approach is problematic because it is unknown
+	at this point if the values we accumulated are dead or they will be
+	used by instructions added later. The dead code elimination pass
+	removes unused values just as well but with enough knowledge to	be
+	safe. The new code also does not move JIT_OP_ADDRESS_OF towards	the
+	relative instructions that uses the address. Supposedly such move
+	may be used by the code generator as a hint. However currently the
+	code generator does not use such a hint. The old code is kept for
+	reference #ifdefed out.
+
+2006-06-17  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-reg-alloc.h, jit/jit-reg-alloc.c: implement support of the
+	JIT_REGS_FREE_DEST flag for 3-argument instructions. Tweak reg alloc
+	API.
+
+	* tools/gen-rules-parser.y: adjust for reg alloc API changes. Use
+	'$0' pattern element to refer to destination register in 3-argument
+	instructions.
+
+	* jit/jit-rules-x86.ins: rewrite JIT_OP_IDIV, JIT_OP_IDIV_UN,
+	JIT_OP_IREM, JIT_OP_IREM_UN, JIT_OP_ADDRESS_OF_LABEL,
+	JIT_OP_LOAD_RELATIVE_FLOAT32, JIT_OP_LOAD_RELATIVE_FLOAT32,
+	JIT_OP_LOAD_RELATIVE_NFLOAT, JIT_OP_LOAD_ELEMENT_FLOAT32,
+	JIT_OP_LOAD_ELEMENT_FLOAT64, JIT_OP_LOAD_ELEMENT_NFLOAT rules.
+
+2006-06-16  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules-x86.sel, jit/jit-rules-x86.ins: fix JIT_OP_IDIV	and
+	JIT_OP_IREM rules for the divisor value of -1.
+
+2006-06-09  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules-x86.ins: rewrite JIT_OP_STORE_RELATIVE_BYTE,
+	JIT_OP_STORE_RELATIVE_SHORT, JIT_OP_STORE_RELATIVE_LONG,
+	JIT_OP_STORE_RELATIVE_FLOAT32, JIT_OP_STORE_RELATIVE_FLOAT64,
+	JIT_OP_STORE_RELATIVE_NFLOAT, JIT_OP_STORE_ELEMENT_LONG,
+	JIT_OP_STORE_ELEMENT_NFLOAT rules to use regular pattern
+	syntax instead of manual.
+
+2006-06-03  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules-x86.ins: remove _jit_regs_free_reg() call from
+	JIT_OP_RETURN_FLOAT32, JIT_OP_PUSH_FLOAT32, JIT_OP_RETURN_FLOAT64,
+	JIT_OP_RETURN_NFLOAT, JIT_OP_PUSH_FLOAT64, and JIT_OP_PUSH_NFLOAT
+	rules. With new ``gen-rules'' tool it frees wrong register and
+	the right register is anyway freed automatically by the new
+	allocator.
+
+	* jit/jit-reg-alloc.h, jit/jit-reg-alloc.c (_jit_regs_abort): add
+	function to unbind values from registers if the code generation
+	failed. This is required because new allocator may temporary bind
+	constants to registers and if neither _jit_regs_commit() nor
+	_jit_regs_abort() is called the constant value will be left in
+	inconsistent state. The problem shows up when the end of a cache
+	block has been reached and the compilation is restarted with a new
+	block.
+
+	* jit/jit-reg-alloc.c (_jit_regs_begin, _jit_regs_end):	add
+	convenience functions.
+
+	* tools/gen-rules-parser.y (gensel_output_clauses): make generated
+	code more readable by using _jit_regs_begin() and _jit_regs_end()
+	where appropriate.
+
+	* jit/jit-reg-alloc.c: allow to load the second part of a register
+	pair to a global register. This is because x86 long arithmetics
+	use 4 registers at once: EAX:EDX and ECX:EBX. At the same time
+	EBX is the global register candidate. If the instruction clobbers
+	the global register, the new allocator automatically pushes it on
+	the stack before and pops after the instruction.
+
+	* jit/jit-function.c (compile_block): modify trace messages.
+
+2006-05-28  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-insn.c: Add a code_label in initialize_setjmp_block just
+	before the end_label that is moved with the block to the start of
+	the function as jump target to the code. Otherwise other blocks
+	moved to the start after this block will never be executed.
+
+2006-05-27  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-reg-alloc.c (free_value, save_value): the value that has
+	a global register and is also associated with a local register
+	needs to be unbound from the local one.
+
+	* jit/jit-reg-alloc.c (compute_spill_cost): assume that the spill
+	cost for clean values is not zero. This keeps them in registers
+	as long as there are free registers and thus reduces the number of
+	loads.
+	
+2006-05-25  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-reg-alloc.c (use_cheapest_register): fix cost calculation
+	again for 'spill_before' rules. The last patch did not work for
+	values stored in global registers. Now both global and non-global
+	values should be copied to EAX.
+
+2006-05-25  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-reg-alloc.c (use_cheapest_register): fix cost calculation
+	that sometimes caused overlooking free registers. This was a serious
+	problem as there are some 'spill_before' rules that assume that the
+	allocator will always choose EAX as the first free register.
+
+2006-05-21  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-reg-alloc.h: add _JIT_REGS_FREE_DEST flag to be used in
+	cases when the destination register is independent of any input
+	register.
+	* tools/gen-rules-parser.y: allow specification	of independent
+	destination register with '=reg' pattern syntax. (But the allocator
+	does not yet handle this.)
+
+2006-05-20  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules-x86.c (_jit_gen_exch_top): fix computation of stack
+	register index.
+
+	* jit/jit-reg-alloc.c (_jit_regs_assign): micro optimization by
+	changing nesting order of for and if statements.
+
+2006-05-19  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit-reg-alloc.h, jit/jit-reg-alloc.c: determine if input values
+	need to be saved and evicted from registers to stack frame at the
+	_jit_regs_assign() time. Uniformly save input values that need to
+	in _jit_regs_gen(), do not save them in _jit_regs_commit(). This
+	simplifies handling of stack registers. Remove initial_stack_top,
+	exchanges, num_exchages fields from the _jit_regs_t struct. Add
+	save and kill bit fields to the _jit_regdesc_t struct. Refactor
+	and clean up code.
+
+2006-05-10  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-reg-alloc.c (use_cheapest_register): check if the other
+	part of a register pair clobbers global registers.
+
+	* jit/jit-reg-alloc.c (exch_stack_top): run value exchange loop
+	for all values in both registers.
+
+	* jit/jit-reg-alloc.h, jit/jit-reg-alloc.c: delete on_stack field
+	from the _jit_regdesc_t struct.
+
+	* jit/jit-reg-alloc.c (_jit_regs_gen): handle instructions that have
+	both stack and flat registers.
+
+	* jit/jit-reg-alloc.c (spill_value): spilling an input value remember
+	if we do register exchanges for other values.
+
+	* jit/jit-reg-alloc.c: set touched registers more accurately.
+
+2006-05-08  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-reg-alloc.c (commit_input_value, commit_output_value):
+	fix extra spills introduced at 2006-05-05.
+
+	* jit/jit-rules-x86.c (_jit_gen_spill_top): add missing
+	jit_cache_end_output().
+
+2006-05-05  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-reg-alloc.h, jit/jit-reg-alloc.c: fix spilling and many
+	problems with stack registers.
+
+2006-05-04  Radek Polak  <psonek2@seznam.cz>
+
+	* jit/jit-dump.c (dump_object_code): Now can dump to any stream
+	not just stdout and stderr.
+
+2006-05-01  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules-x86.sel, jit/jit-rules-x86.ins: fix problem with
+	spilling dest register in JIT_OP_ADDRESS_OF rule.
+
+	* jit/jit-rules-x86.ins: rewrite JIT_OP_STORE_RELATIVE_INT rule.
+
+2006-04-23  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-reg-alloc.h, jit/jit-reg-alloc.c: register allocator now
+	supports register sets that constrain the register assignment.
+
+	* tools/gen-rules-parser.y: extend grammar to support register sets.
+	Fix bugs.
+
+	* jit/jit-rules-x86.ins: take advantage of new register allocator
+	for JIT_OP_MEMORY, JIT_OP_MEMOVE, JIT_OP_MEMESET rules.
+
+2006-04-20  Aleksey Demakov  <ademakov@gmail.com>
+
+	* tools/gen-rules-parser.y: fix generation of `if' pattern code.
+
+2006-04-19  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules-x86.c (_jit_gen_load_value): fix compiler warning.
+
+	* tools/gen-rules-parser.y (gensel_output_clauses): fix generation
+	of clobber and scratch code.
+
+	* tools/gen-rules-scanner.l, tools/gen-rules-parser.y: add `any'
+	keyword.
+
+2006-04-18  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules-x86.ins: add instruction selection rules for new
+	register allocator.
+	* jit/Makefile.am: build new instruction selection rules.
+	* configure.in: add --enable-new-reg-alloc option.
+
+2006-04-14  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-reg-alloc.h, jit/jit-reg-alloc.c: new register allocator
+	improved and extended to support stack registers.
+
+	* jit/jit-internal.h (struct _jit_builder): 
+	* jit/jit-function.c (compile_block, jit_function_compile): add
+	some tracing.
+
+	* jit/jit-rules.h:
+	* jit/jit-rules-arm.c:
+	* jit/jit-rules-interp.c: 
+	* jit/jit-rules-x86.c: add _jit_gen_exch_top and _jit_gen_spill_top
+	functions used by new allocator to handle stack registers. Add reg
+	argument to _jit_gen_spill_global and_jit_gen_load_global
+	functions.
+
+2006-04-11  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-insn.c (jit_insn_start_catcher): initialize
+	thrown_exception (the problem was found by Klaus).
+
+2006-04-08  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-opcode.c: add jump table into jit_opcodes array.
+
+	* tools/gen-rules-parser.y: extend pattern syntax to allow mark
+	  registers as clobbered. Fix bugs.
+
+2006-04-07  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-internal.h (struct _jit_function): add indirector field.
+	* jit/jit-function.c (jit_function_compile, jit_function_create):
+	  use indirector.
+	* jit/jit-apply-x86.h: define jit_indirector_size.
+	* jit/jit-apply-func.h, jit/jit-apply-x86.c (_jit_create_indirector):
+	  add function that emits indirector code.
+
+2006-04-07  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-insn.c (create_call_setup_insns): zero struct_return
+	in case of tail calls (the problem was found by Klaus).
+
+2006-04-03  Aleksey Demakov  <ademakov@gmail.com>
+
+	* tools/gen-rules-scanner.l:
+	* tools/gen-rules-parser.y: add `reversible', `x87arith',
+	  and `copy' keywords. Fix bugs.
+
+2006-03-23  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jitc-except.c: Walk the stack to build the stack trace in
+	jit_exception_get_stack_trace when the frame is not broken.
+
+2006-03-23  Aleksey Demakov  <ademakov@gmail.com>
+
+	* tools/Makefile.am: 
+	* tools/gen-rules-parser.y, tools/gen-rules-scanner.l: add
+	"gen-rules" tool that is similar to "gen-sel" but uses new
+	register allocator.
+
+2006-03-12  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/jit-insn.c: Pop the setjump context on return from functions
+	with a catcher.
+
+2006-03-11  Kirill Kononenko  <Kirill.Kononenko@gmail.com>
+
+	* jit/jit-insn.c (create_call_setup_insn): fix tail calls, work
+	if the called function is not the callee function
+	(thanks klausT for finding the bug).
+
+2006-02-27  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-insn.c (jit_insn_convert): fix int->uint and uint->int
+	conversion.
+
+2006-02-26  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules-x86.sel: fix JIT_OP_STORE_RELATIVE_LONG.
+
+	* jit/jit-gen-x86.h (x86_pop_mem, x86_pop_membase): fix opcode --
+	  it was 0x87 (xchg) instead of 0x8f (pop).
+
+2006-02-24  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-insn.c (jit_insn_address_of_label): fix a typo.
+	* jit/jit-rules-x86.sel: fix JIT_OP_ADDRESS_OF_LABEL rule.
+
+2006-02-20  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules-x86.c (_jit_create_call_return_insns): fix return
+	code in case of no return value or struct returned via pointer.
+
+2006-02-19  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-reg-alloc.h: 
+	* jit/jit-reg-alloc.c: Initial version of new local register
+	  allocator.
+
+	* jit/jit-rules.h: 
+	* jit/jit-rules-arm.c (_jit_gen_spill_global): 
+	* jit/jit-rules-interp.c (_jit_gen_spill_global): 
+	* jit/jit-rules-x86.c (_jit_gen_spill_global): add function for
+	spilling global registers. Used by the new allocator. Only x86
+	version is really implemented.
+
+2006-02-13  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-internal.h (struct _jit_value): add index field.
+	* jit/jit-value.c (alloc_value): initialize index field;
+	* jit/Makefile.am (libjit_la_SOURCES): add jit-bitset.c and jit-cfg.c.
+
+2006-02-12  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules-x86.sel: fix JIT_OP_CALL_FINALLY.
+
+2006-02-10  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-bitset.c: 
+	* jit/jit-bitset.h: 
+	* jit/jit-cfg.c:
+	* jit/jit-cfg.h: initial code drop for a more precise liveness
+	analysis based on control flow graph.
+
+2006-02-04  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules-x86.sel: fix a typo in JIT_OP_JUMP_TABLE.
+
+2006-01-30  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules-x86.c (_jit_gen_load_value): optimize loading
+	of zero constants. Allow to move a value from one register to
+	another.
+
+2006-01-15  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* configure.in, NEWS: update version for the "0.0.6" release.
+
+	* configure.in: updating working version to "0.0.7".
+
+2006-01-14  Aleksey Demakov  <ademakov@gmail.com>
+
+	* tools/gen-sel-parser.y: spilling a register which is the first
+	part of a register pair spill the other part too.
+
+	* jit/jit-reg-alloc.c (free_register_for_value):
+	* jit/jit-rules-x86.sel: if a register is the second part of a
+	register pair do not consider it free.
+
+2006-01-13  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-insn.c: fix all descriptors of intrinsic functions that
+	return an exception code to have return_type equal to
+	_jit_type_int_def.
+
+	* jit/jit-dump.c (dump_object_code): fix object file extension.
+
+2006-01-11  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-gen-x86.h (x86_jump_memindex): add macro for indirect
+	jumps.
+	* jit/jit-internal.h, jit/jit-function.c, jiy/jit-rules-x86.c:
+	add fixup_absolute_list field to _jit_block struct for fixing up
+	absolute address references to a block.
+	* include/jit/jit-opcode.h, include/jit/jit-insn.h, jit/jit-insn.c
+	(jit_insn_jump_table), jit/jit-rules-x86.sel, jit/jit-rules-interp.c
+	(_jit_gen_insn), jit/jit-interp.c (_jit_run_function):
+	add JIT_OP_JUMP_TABLE opcode.
+
+2006-01-08  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-apply-x86.h (jit_builtin_return_int): change definition
+	to dereference the return_buf argument and use leal instead of movl.
+	This fixes builds with gcc 4.0.2.
+
+2005-12-28  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules-x86.sel: implement JIT_OP_MEMMOVE rule. Get rid of
+	compiler warnings in JIT_OP_MEMSET.
+
+2005-12-24  Avinash Atreya  <avinashatreya@gmail.com>
+
+	* dpas/dpas-parser.y: implement array expressions (committed by Aleksey
+	Demakov, jit_insn_throw replaced with throw_builtin_exception)
+
+2005-12-24  Aleksey Demakov  <ademakov@gmail.com>
+
+	* include/jit/jit-except.h, jit/jit-except.c (jit_exception_builtin): 
+	add JIT_RESULT_OUT_OF_BOUNDS builtin exception type code.
+
+	* dpas/dpas-parser.y (throw_builtin_exception): add static function
+	that makes jit_exception_builtin call.
+
+	* jit/jit-cache.c (_jit_cache_get_start_method): add function that
+	for an address in cache returns the start address of the block that
+	contains it.
+	* jit/jit-except.c (jit_stack_trace_get_offset): use
+	_jit_cache_get_start_method function instead of cache_start field.
+	* jit/jit-internal.h, jit/jit-function.c (jit_function_compile):
+	remove cache_start field to the jit_function struct.
+
+2005-12-22  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-rules-x86.sel: implement JIT_OP_MEMSET and JIT_OP_MEMCPY
+	rules optimized	for small constant size blocks.
+
+2005-12-20  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-gen-x86.h (x86_fld_memindex, x86_fld80_memindex)
+	(x86_fst_memindex, x86_fst80_memindex): add floating point load
+	and store macros with memindex addressing.
+
+	* jit/jit-rules-x86.sel: optimize floating point element load
+	and store rules. Fix potential register allocation problems.
+
+2005-12-18  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-internal.h, jit/jit-function.c (jit_function_compile):
+	Add cache_start field to the jit_function struct, set it to the start
+	of the function code cache.
+
+	* jit/jit-except.c (jit_stack_trace_get_offset): implement the
+	function.
+
+2005-12-15  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-insn.c (jit_insn_address_of): return null if the value is
+	constant.
+
+2005-12-15  Avinash Atreya  <avinashatreya@gmail.com>
+
+	* jit/jit-insn.c: Store constants to a temporary to obtain
+	address of constant values (Gopal).
+
+2005-12-13  Aleksey Demakov  <ademakov@gmail.com>
+
+	* configure.in: Added --enable-long-double option that forces
+	jit_nfloat to be long double.
+
+	* jit/jit-apply-x86.h (jit_builtin_apply, jit_builtin_return_float):
+	In gcc/Win32 and gcc/non-Win32 versions of the macros check the size
+	of jit_nfloat and use fstpl/fldl or fstpt/fldt instructions
+	accordingly.
+
+	* tools/gen-apply.c (detect_float_return): On x86 only the first
+	10 bytes of 12 byte long doubles are significant and are used for
+	comparison.
+
+2005-12-12  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-dump.c (dump_object_code): in order to make dump work on
+	cygwin call "as" and "objdump" in two separate system() calls because
+	it looks like the ';' separator between commands does not work there.
+	Also on Win32 use TMP and TEMP environment variables as the tmp
+	directory names and fallback to "c:/tmp".
+
+	* jit/jit-gen-x86.h (jit_assert): change the macro definition to
+	resolve	problems introduced at 2005-12-10.
+
+2005-12-10  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-gen-x86.h: Merged changes from the latest Mono project's
+	version	of this file.
+
+	* jit/jit-rules-x86.sel: Done the following rules:
+	JIT_OP_LOAD_ELEMENT_FLOAT32, JIT_OP_LOAD_ELEMENT_FLOAT64,
+	JIT_OP_LOAD_ELEMENT_NFLOAT, JIT_OP_STORE_ELEMENT_LONG,
+	JIT_OP_STORE_ELEMENT_FLOAT32, JIT_OP_STORE_ELEMENT_FLOAT64,
+	JIT_OP_STORE_ELEMENT_NFLOAT.
+
+2005-11-19  Klaus Treichel  <ktreichel@web.de>
+
+	* jit/apply-x86-64.h: Change definition of JIT_MEMCPY from "jit_memcpy" to
+	"jit_memcpy@PLT" to fix the build of a shared library for x86_64.
+
+2004-11-18  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* include/jit/jit-opcode.h, jit/jit-dump.c, jit/jit-insn.c,
+	jit/jit-interp.c, jit/jit-opcode.c, jit/jit-rules-interp.c,
+	jit/jit-rules-x86.sel: implement tail calls properly.
+
+2004-11-05  Evin Robertson  <evin@users.sourceforge.net>
+
+	* jit/jit-insn.c (jit_insn_store): use the destination type
+	to determine the store opcode, not the source value type.
+
+2004-11-02  Evin Robertson  <evin@users.sourceforge.net>
+
+	* jit/jit-function.c (jit_function_compile): clear block addresses
+	and fixup lists if we need to restart on a new cache page (minor
+	alterations by Rhys).
+
+	* jit/jit-function.c (jit_function_apply_vararg): return 0 when a
+	sub-function throws an exception, not 1.
+
+2004-10-31  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/jit-rules-x86.sel: handle the special case of constant
+	destination pointers in "store_relative" instructions, because
+	otherwise the register allocator gets confused.
+
+2004-10-29  Peter Lund <firefly@diku.dk>
+
+	* doc/libjit.3: fix manpage formatting issues. (patch attached
+	to bug #10779, Gopal).
+
+2004-10-28  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* configure.in, jit/jit-debugger.c, jit/jit-thread.c,
+	jit/jit-thread.h: implement some of the locking code
+	for the debugging API.
+
+2004-10-12  Evin Robertson  <evin@users.sourceforge.net>
+
+	* jit/jit-rules-x86.c (output_branch): correct the offset
+	when outputting a long-form backward branch.
+
+	* tests/Makefile.am, tests/loop.pas: test case for the
+	long-form backward branch bug.
+
+2004-10-06  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* doc/Makefile.am, doc/libjit.texi, include/jit/Makefile.am,
+	include/jit/jit-common.h, include/jit/jit-context.h,
+	include/jit/jit-debugger.h, include/jit/jit-except.h,
+	include/jit/jit-function.h, include/jit/jit.h, jit/Makefile.am,
+	jit/jit-context.c, jit/jit-debug.c, jit/jit-debugger.c,
+	jit/jit-insn.c, jit/jit-internal.h, jit/jit-interp.c:
+	redesign the debugger API so that it contains functions
+	like "add breakpoint", "run", "step", etc that more closely resemble
+	what a front end debugger will want to have, shifting the
+	implementation burden off the front end.
+
+2004-10-04  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* include/jit/jit-function.h, include/jit/jit-insn.h,
+	include/jit/jit-opcode.h, include/jit/jit-plus.h, jit/jit-function.c,
+	jit/jit-insn.c, jit/jit-internal.h, jit/jit-interp.c,
+	jit/jit-opcode.c, jit/jit-rules-interp.c, jit/jit-rules-arm.sel,
+	jit/jit-rules-x86.sel, jitplus/jit-plus-function.cpp:
+	add instructions and function API's for supporting debug line
+	numbers and breakpoints.
+
+	* doc/Makefile.am, doc/libjit.texi, include/jit/jit-context.h,
+	include/jit/jit-insn.h, include/jit/jit-opcode.h,
+	include/jit/jit-plus.h, jit/Makefile.am, jit/jit-context.c,
+	jit/jit-debug.c, jit/jit-function.c, jit/jit-insn.c,
+	jit/jit-internal.h, jit/jit-interp.c, jit/jit-opcode.c,
+	jit/jit-rules-arm.sel, jit/jit-rules-interp.c, jit/jit-rules-x86.sel,
+	jitplus/jit-plus-function.cpp: clean up the breakpoint API and
+	implement debug hooks for the interpreter.
+
+	* jit/jit-insn.c, jit/jit-rules-arm.sel, jit/jit-rules-x86.sel:
+	use a common helper function for performing debug hook tests on
+	native platforms, to avoid the need to implement breakpoint testing
+	individually in every native back end.
+
+2004-09-10  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/jit-rules-x86.sel: pointer-relative loads and stores
+	for structures in the x86 back end.
+
+2004-09-09  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/jit-rules-x86.c, jit/jit-rules-x86.sel: add some support
+	for structure copying to the x86 back end.
+
+2004-09-06  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/jit-rules-interp.c: the pointer value for indirect and vtable
+	calls was being pushed onto the stack twice.
+
+2004-09-05  Norbert Bollow  <nb@SoftwareEconomics.biz>
+
+	* samples/hellovm.c: add a sample program that demonstrates a
+	simple VM based on libjit (committed by Rhys).
+
+2004-08-30  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit-rules-x86.sel: fix x86 code generation for floating-point
+	return instructions.
+
+2004-08-16  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/jit-cpuid-x86.c (cpuid_query): use %ebx in a way that doesn't
+	confuse PIC mode in some versions of gcc (bug #10022).
+
+2004-08-13  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* include/jit/jit-insn.h, include/jit/jit-opcode.h,
+	include/jit/jit-plus.h, jit/jit-insn.c, jit/jit-internal.h,
+	jit/jit-interp.h, jit/jit-opcode.c, jit/jit-rules-interp.c,
+	jitplus/jit-plus-function.cpp: re-implement the "push_return_area_ptr"
+	patch so as to avoid wasting stack space in functions with more
+	than one native function call.
+
+2004-08-12  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/jit-rules-interp.c: account for the extra value that is
+	added to the stack by the "push_return_area_ptr" instruction.
+
+2004-08-08  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* configure.in, NEWS: update version for the "0.0.4" release.
+
+	* configure.in: updating working version to "0.0.5".
+
+2004-08-05  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* doc/Makefile.am, doc/README, doc/libjit.texi,
+	jit/jit-dump.c, jit/jit-insn.c: documentation updates.
+
+	* dpas/Makefile.am, tools/Makefile.am: support for parallel builds.
+
+2004-08-04  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/jit-opcode.c: fix the operand types for "call_vtable_ptr".
+
+2004-06-25  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* tools/gen-apply.c: fix a crash in gen-apply under x86-64.
+
+	* jit/jit-apply-func.h, jit/jit-apply-x86-64.h, tools/gen-apply.c:
+	write an x86-64 assembly version of "__builtin_apply", because
+	the version inside gcc has an unusable register ordering.
+
+2004-06-24  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/jit-reg-alloc.c, jit/jit-rules-arm.h, jit/jit-rules-interp.c,
+	jit/jit-rules-interp.h, jit/jit-rules-x86.h, jit/jit-rules.h:
+	use separate JIT_REG_xxx flags for float32, float64, and nfloat
+	because some platforms need to put these values in different
+	types of registers (e.g. x86-64).
+
+2004-06-22  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/jit-insn.c: properly set the "may_throw" flag for opcodes
+	that throw exceptions and which are also supported by the back end.
+
+2004-06-21  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/jit-rules-x86.c, jit/jit-rules-x86.sel: move the code
+	for loading/storing small structures into a central location.
+
+2004-06-18  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/jit-dump.c, jit/jit-reg-alloc.c, jit/jit-rules-arm.c,
+	jit/jit-rules-arm.h, jit/jit-rules-x86.c, jit/jit-rules-x86.h,
+	jit/jit-rules-x86.sel, jit/jit-rules.c, jit/jit-rules.h,
+	tests/param.pas: rewrite the x86 and ARM parameter handling
+	routines to centralise the code and fix several bugs; add new
+	tests for fastcall and stdcall conventions.
+
+2004-06-17  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/jit-reg-alloc.c (_jit_regs_set_outgoing): pass 64-bit "fastcall"
+	parameters in ECX:EDX, not in ECX:EBX.
+
+	* tools/gen-apply.c: allow floating-point values to be passed
+	in "fastcall" registers.
+
+2004-06-16  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* tools/gen-sel-parser.y: add a missing semi-colon.
+
+2004-06-14  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* dpas/dpas-internal.h, dpas/dpas-parser.y, dpas/dpas-scanner.l,
+	jit/jit-rules-x86.c, jit/jit-rules-x86.sel, tests/Makefile.am,
+	tests/param.pas, tools/gen-apply.c: add some test cases for
+	parameter passing; fix fastcall/stdcall conventions for x86.
+
+	* jit/jit-rules-arm.h, jit/jit-rules-arm.sel, jit/jit-rules-x86.h,
+	jit/jit-rules-x86.sel, tools/gen-sel-parser.y: enable register
+	allocation for 64-bit values under x86 and ARM; expand some
+	64-bit opcodes in the instruction selectors.
+
+2004-06-12  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/jit-insn.c, jit/jit-rules-x86.c, jit/jit-rules-x86.sel:
+	implement or stub missing x86 instruction selection rules.
+
+	* include/jit/jit-insn.h, include/jit/jit-opcode.h,
+	include/jit/jit-plus.h, jit/jit-function.c, jit/jit-insn.c,
+	jit/jit-interp.c, jit/jit-opcode.c, jit/jit-rules-interp.c,
+	jitplus/jit-plus-function.cpp: add the "outgoing_frame_posn"
+	instruction, to support tail calls.
+
+2004-06-11  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* doc/libjit.texi, jit/jit-insn.c, jit/jit-internal.h,
+	jit/jit-reg-alloc.c, jit/jit-rules-arm.c, jit/jit-rules-arm.sel,
+	jit/jit-rules-interp.c, jit/jit-rules-x86.c, jit/jit-rules-x86.sel,
+	jit/jit-rules.h, jit/jit-value.c, tutorial/Makefile.am,
+	tutorial/t2.c, tutorial/t5.c: implement tail calls from a
+	function to itself.
+
+	* jit/jit-function.c, jit/jit-reg-alloc.c, jit/jit-rules-arm.c,
+	jit/jit-rules-interp.c, jit/jit-rules-x86.c, jit/jit-rules.h:
+	implement global register allocation for parameters in stack slots.
+
+	* jit/jit-rules-x86.c, jit/jit-rules-x86.sel, jit/jit-rules.h:
+	optimize the x86 function epilog when we are certain that the
+	stack height doesn't change between entry and exit (i.e. the
+	function is a leaf and there are no alloca's).
+
+2004-06-10  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/jit-apply-arm.c, jit/jit-gen-arm.c, jit/jit-gen-arm.h,
+	jit/jit-rules-arm.c, jit/jit-rules-arm.h, jit/jit-rules-arm.sel,
+	tools/gen-sel-parser.y: redesign the ARM code generation macros
+	so that they have stronger protection against buffer overruns.
+
+	* jit/jit-rules-arm.sel: flush the constant pool after unconditional
+	branches, to try to minimize the probability that the pool will
+	be flushed in the middle of a loop body.
+
+	* jit/jit-dump.c: dump the hex address of external functions,
+	to aid with debugging native disassembly dumps.
+
+	* include/jit/jit-insn.h, include/jit/jit-opcode.h,
+	include/jit/jit-plus.h, jit/jit-insn.c, jit/jit-internal.h,
+	jit/jit-interp.c, jit/jit-opcode.c, jit/jit-rules-arm.c,
+	jit/jit-rules-arm.sel, jitplus/jit-plus-function.cpp:
+	add support for outgoing parameter areas, which should reduce
+	the overhead of function calls that involve stacked arguments
+	on non-x86 platforms; use parameter areas in the ARM back end.
+
+	* include/jit/jit-plus.h, include/jit/jit-value.h, jit/jit-insn.c,
+	jit/jit-internal.h, jit/jit-reg-alloc.c, jit/jit-rules-x86.c,
+	jit/jit-value.c: don't over-allocate x86 stack frames if
+	EBX, ESI, and EDI don't need to be saved; don't perform global
+	register allocation on stacked parameters because it confuses
+	the register spill logic.
+
+	* jit/jit-reg-alloc.c (_jit_regs_load_value): avoid unnecessary
+	spills if a temporary value won't be used again in the current block.
+
+2004-06-09  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/jit-rules-arm.c (flush_constants): update the instruction
+	location after flushing the constant table.
+
+	* jit/jit-gen-arm.h: fix some bugs in the encoding of floating-point
+	load and store instructions.
+
+	* jit/jit-gen-arm.c (_arm_alu_reg_imm): forgot to update the
+	instruction pointer when loading the immediate value.
+
+	* jit/jit-gen-arm.c: optimize the use of rotated immediate values.
+
+	* jit/jit-rules-arm.c (_jit_gen_load_value): use ARM register pairs
+	properly for "long" and "float64" values.
+
+2004-06-08  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/Makefile.am, jit/jit-cpuid-x86.c, jit/jit-cpuid-x86.h:
+	add an API for querying the x86 "cpuid" information.
+
+	* include/jit/jit-opcode.h, jit/jit-interp.c, jit/jit-opcode.c:
+	remove obsolete opcodes which violate "_jit_load_opcode"'s rules.
+
+	* jit/jit-reg-alloc.c, jit/jit-rules-x86.c, jit/jit-rules-x86.sel:
+	more x86 instruction selection rules.
+
+	* jit/jit-reg-alloc.c (_jit_regs_set_outgoing): implement
+	missing function.
+
+	* jit/jit-gen-arm.h (arm_call): use a more efficient form of
+	call for offsets beyond the simple target range.
+
+	* jit/jit-rules-arm.sel, tools/gen-sel-parser.y,
+	tools/gen-sel-scanner.l: introduce conditional rules into "gen-sel"
+	so that we can disable certain rules on ARM platforms that lack
+	floating-point support.
+
+	* jit/jit-rules-arm.c (_jit_gen_spill_reg): spill properly to
+	global registers for ARM.
+
+	* jit/jit-reg-alloc.c, jit/jit-rules-arm.c, jit/jit-rules-arm.sel,
+	jit/jit-rules-x86.sel: minor register assignment bugs.
+
+	* jit/jit-rules-arm.c: ARM parameters cannot be split between
+	registers and the stack.
+
+	* jit/jit-gen-arm.c, jit/jit-gen-arm.h, jit/jit-rules-arm.c,
+	jit/jit-rules-arm.h, jit/jit-rules-arm.sel: implement a
+	constant pool for ARM, which gets complicated constants out
+	of the main stream of execution.
+
+2004-06-08  Miroslaw Dobrzanski-Neumann  <mne@mosaic-ag.com>
+
+	* jit/jit-alloc.c: fix ROUND_END_PTR so that it adds the size
+	after casting to jit_nuint.
+
+2004-06-07  Thong Nguyen  <tim@veridicus.com>
+
+	* configure.in, jit/jit-insn.c: add "_setjmp" to the list of
+	names to try to work around the "setjmp" macro (needed for Win32).
+
+2004-06-07  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* tools/gen-apply.c: gen-apply fixes for Alpha platforms.
+
+	* jit/jit-interp.c: alignment problem with "push_const_float32"
+	on 64-bit platforms.
+
+	* jit/jit-intrinsic.c: work around a SIGFPE for sqrt(-1) on Alpha;
+	it should return NaN instead.
+
+	* jit/jit-value.c: fix a warning.
+
+	* configure.in, jit/jit-insn.c: use "sigsetjmp" instead of
+	"setjmp", because "setjmp" may be a macro on some systems.
+
+	* jit-gen-arm.h: add floating-point instruction macros.
+
+	* jit/jit-gen-arm.h, jit/jit-rules-arm.c, jit/jit-rules-arm.h,
+	jit/jit-rules-arm.sel: expand floating-point instructions for ARM.
+
+	* jit/jit-rules-x86.c: fix misnaming of jit_type_get_abi,
+	jit_abi_stdcall, and jit_abi_fastcall.
+
+	* tools/gen-apply-macosx.h, tools/gen-apply.c: bypass the
+	auto-detection logic in gen-apply under MacOSX because
+	it doesn't work with Apple's version of gcc.
+
+	* tools/gen-apply.c: gen-apply fix for ia64.
+
+	* jit/jit-alloc.c (jit_flush_exec): warning fix for ia64.
+
+2004-06-06  Miroslaw Dobrzanski-Neumann  <mne@mosaic-ag.com>
+
+	* jit/jit-alloc.c (jit_flush_exec): flush cache lines properly
+	if the start is not on a line boundary.
+
+2004-06-06  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/jit-reg-alloc.c, jit/jit-reg-alloc.h, jit/jit-rules-arm.c,
+	jit/jit-rules-arm.sel, jit/jit-rules-x86.c, jit/jit-rules-x86.sel:
+	add some more instructions to the ARM back end; split some x86
+	back end code out into common code for ARM to use as well.
+
+2004-06-02  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/jit-function.c, jit/jit-insn.c, jit/jit-internal.h,
+	jit/jit-reg-alloc.c, jit/jit-reg-alloc.h, jit/jit-rules-arm.c,
+	jit/jit-rules-arm.h, jit/jit-rules-interp.c, jit/jit-rules-interp.h,
+	jit/jit-rules-x86.c, jit/jit-rules-x86.h, jit/jit-rules.h,
+	jit/jit-value.c, tools/gen-sel-parser.y: implement a simple global
+	register allocation policy, based on usage counts.
+
+	* jit/jit-reg-alloc.c (_jit_regs_load_value): if a value is in a
+	global register and it is not going to be destroyed by an instruction,
+	then use the global register as the operand.
+
+	* jit/jit-insn.c: recognise "t = a op b; a = t" and turn it
+	into "a = a op b" to make it easier for back ends to recognise
+	special idioms such as increments and decrements.
+
+2004-06-01  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/jit-cache.c, jit/jit-elf-read.c, tools/gen-apply.c:
+	fix some gcc 3.x compile warnings.
+
+	* jit/jit-rules-arm.c, jit/jit-rules-arm.sel: more instruction
+	selection rules for ARM.
+
+	* configure.in, jit/jit-rules.h: enable the x86 back end by
+	default on platforms where it makes sense, and add the option
+	"--enable-interpreter" to "configure".
+
+2004-05-31  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/jit-rules-x86.sel: optimize multiplications for x86.
+
+	* jit/jit-rules-x86.c, jit/jit-rules-x86.sel, tools/gen-sel-parser.y,
+	tools/gen-sel-scanner.l: inline and optimize divisions for x86.
+
+	* jit/jit-rules-x86.sel: throw exceptions correctly for "check_null".
+
+2004-05-30  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* doc/libjit.texi: clarify the text that describes LLVM, at the
+	request of Chris Lattner, LLVM's author.
+
+	* jit/jit-insn.c (jit_insn_convert): use intrinsic functions
+	for conversions when the back end doesn't support the opcode.
+
+	* jit/jit-rules-x86.sel, tools/gen-sel-parser.y,
+	tools/gen-sel-scanner.l: improve instruction selection for
+	floating-point "push" operations.
+
+	* include/jit/jit-insn.h, jit/jit-insn.c, jit/jit-internal.h,
+	jit/jit-rules-x86.c: add "jit_insn_defer_pop_stack" and
+	"jit_insn_flush_defer_pop", to defer the popping of function
+	call arguments as long as possible.
+
+	* jit/jit-rules-x86.sel: fix a cpu vs non-cpu register problem
+	in the floating-point "push" operations for x86.
+
+2004-05-29  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/jit-insn.c, jit/jit-reg-alloc.c, jit/jit-reg-alloc.h,
+	jit/jit-rules-x86.c, jit/jit-rules-x86.sel: continue the
+	x86 back end; particularly byte/short stores.
+
+	* jit/jit-rules-x86.sel: stub out JIT_OP_RETURN_REG, which
+	doesn't need any special handling for x86.
+
+2004-05-27  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* tools/gen-apply.c: split "detect_struct_conventions" up a bit
+	more to (hopefully) prevent problems under MacOSX; fix a bug in
+	the generation of "jit_apply_builder_align_regs" that affected
+	ARM and PPC systems.
+
+	* dpas/dpas-types.c (dpas_type_identical): treat "float64" and
+	"nfloat" as identical on platforms whose "long double" type is
+	the same as "double".
+
+	* jit/jit-rules-x86.c, jit/jit-rules-x86.sel, tools/gen-sel-parser.y,
+	tools/gen-sel-scanner.l: relative loads and stores for x86.
+
+2004-05-26  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/jit-insn.c, jit/jit-rules-x86.c, jit/jit-rules-x86.sel,
+	jit/jit-rules.h, tools/gen-sel-parser.y: fix some compile issues
+	in the x86 native back end.
+
+	* jit/jit-function.c, jit/jit-rules-x86.c, jit/jit-rules-x86.sel,
+	tools/gen-sel-parser.y: more bug fixes for the x86 back end.
+
+	* include/jit/jit-insn.h, include/jit/jit-plus.h, jit/jit-insn.c,
+	jitplus/jit-plus-function.cpp: add "jit_insn_new_block" to simplify
+	creating a new block that doesn't have an explicit label.
+
+	* dpas/dpas-parser.y, include/jit/jit-block.h, jit/jit-block.c,
+	jit/jit-insn.c: add "jit_block_current_is_dead" to simplify
+	testing if the last block is reachable or not, taking empty
+	trailing blocks into account.
+
+	* jit/jit-rules-x86.c, jit/jit-rules-x86.sel, tools/gen-sel-parser.y,
+	tools/gen-sel-scanner.l: more selection cases for the x86 back end.
+
+	* jit/Makefile.am, jit/jit-gen-arm.h, jit/jit-rules-arm.c,
+	jit/jit-rules-arm.sel: add the beginnings of the instruction
+	selector for ARM.
+
+2004-05-25  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* tools/.cvsignore, tools/Makefile.am, tools/gen-sel-parser.y,
+	tools/gen-sel-scanner.l: add the "gen-sel" program to the tree,
+	to assist with building native instruction selectors.
+
+	* jit/.cvsignore, jit/Makefile.am, jit/jit-rules-x86.c,
+	jit/jit-rules-x86.sel, tools/gen-sel-parser.y: check in the
+	initial instruction selector for x86 (incomplete).
+
+	* jit/jit-rules-x86.sel, tools/gen-sel-parser.y,
+	tools/gen-sel-scanner.l: selectors for branch instructions.
+
+	* jit/jit-rules-x86.sel: selectors for call instructions.
+
+2004-05-24  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* include/jit/jit-insn.h, include/jit/jit-opcode.h, jit/jit-block.c,
+	jit/jit-dump.c, jit/jit-except.c, jit/jit-function.c, jit/jit-insn.c,
+	jit/jit-internal.h, jit/jit-interp.c, jit/jit-interp.h,
+	jit/jit-opcode.c, jit/jit-rules-arm.c, jit/jit-rules-interp.c,
+	jit/jit-rules-x86.c, jit/jit-rules.h, jit/jit-setjmp.h:
+	rewrite the exception region routines to make them easier
+	to use from CLI and JVM style systems.
+
+	* jit/jit-rules-interp.c (_jit_gen_start_block): set the address
+	of the exception handler for interpreted code.
+
+	* include/jit/jit-plus.h, jitplus/jit-plus-function.cpp:
+	add missing functions to the C++ API.
+
+2004-05-22  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/jit-block.c (_jit_block_peephole_branch): don't allow
+	conditional branches to cross an exception context boundary,
+	because doing so will violate "finally" semantics.
+
+	* dpas/dpas-parser.y, include/jit/jit-insn.h, jit/jit-function.c,
+	jit/jit-insn.c, jit/jit-internal.h: rename "jit_insn_move_blocks"
+	to "jit_insn_move_blocks_to_end" and add a new function
+	"jit_insn_move_blocks_to_start" for creating initialization code.
+
+	* include/jit/jit-opcode.h, jit/jit-except.c, jit/jit-function.c,
+	jit/jit-insn.c, jit/jit-internal.h, jit/jit-interp.c, jit/jit-opcode.c,
+	jit/jit-setjmp.h: modify the function call logic to use "setjmp"
+	with native back ends.
+
+2004-05-21  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/jit-gen-arm.c, jit/jit-gen-arm.h: modify the ARM codegen
+	macros so that they can be used for branch elimination.
+
+	* include/jit/jit-except.h, jit/jit-except.cpp, jit/jit-function.c,
+	jit/jit-insn.c, jit/jit-internal.h, jit/jit-interp.cpp,
+	jit/jit-interp.h, jit/jit-setjmp.h: redesign the exception handling
+	mechanism to use "setjmp" rather than C++ exceptions.
+
+	* configure.in, doc/Makefile.am, doc/libjit.texi, dpas/Makefile.am,
+	jit/Makefile.am, jit/jit-except.c, jit/jit-except.cpp,
+	jit/jit-interp.c, jit/jit-interp.cpp, jitdynamic/Makefile.am:
+	remove the last remaining C++ code from libjit.so so that
+	it is now a pure C library.
+
+	* include/jit/jit-insn.h, include/jit/jit-opcode.h,
+	include/jit/jit-plus.h, jit/jit-insn.c, jit/jit-interp.c,
+	jit/jit-opcode.c, jitplus/jit-plus-function.cpp:
+	add the "jit_insn_alloca" instruction.
+
+	* configure.in, jit/.cvsignore, jit/Makefile.am, jit/jit-interp.c,
+	jit/mklabel.sh: use computed goto's in the interpreter if supported
+	by the underlying compiler.
+
+2004-05-20  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* include/jit/jit-value.h, jit/jit-insn.c, jit/jit-value.c:
+	convert constant conditional branches such as "if true goto L" into
+	unconditional branches.
+
+	* jit/jit-block.c, jit/jit-internal.h, jit/jit-live.c,
+	jit/jit-rules-interp.c: perform peephole optimization of
+	branches to branches before live variable analysis, so that
+	the back ends don't need to worry about jump threading.
+
+	* jit/jit-block.c, jit/jit-live.c: treat dead blocks as empty
+	when peepholing branches to the next block.
+
+2004-05-15  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* tools/gen-apply.c: fix a macro generation bug for Win32 systems.
+
+	* jit/jit-reg-alloc.c: fix a compile bug.
+
+2004-05-14  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* include/jit/Makefile.am, include/jit/jit-objmodel-private.h,
+	include/jit/jit-objmodel.h, include/jit/jit.h, jit/Makefile.am,
+	jit/jit-objmodel.c: put some infrastructure in place to support
+	pluggable object models.
+
+2004-05-13  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* dpas/dpas-parser.y, dpas/dpas-types.c, dpas/dpas-types.h:
+	put some infrastructure (incomplete) in place to support array
+	index expressions.
+
+	* configure.in, NEWS: update version for the "0.0.2" release.
+
+	* configure.in: updating working version to "0.0.3".
+
+2004-05-12  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jitdynamic/Makefile.am, jitplus/Makefile.am: use both .libs and
+	non.libs versions of the so paths, because some versions of libtool
+	add .libs implicitly and others don't.
+
+	* dpas/dpas-builtin.c, dpas/dpas-parser.y, dpas/dpas-types.c,
+	dpas/dpas-types.h: add the "SameType" and "SameShape" builtins,
+	to assist with unit testing type coercions.
+
+	* dpas/dpas-parser.y (IfTail): fix a bug that caused the "then"
+	case of an "if" to fall through to the "else".
+
+	* dpas/dpas-parser.y: resolve ea-based lvalues in operators.
+
+	* include/jit/jit-defs.h.in: incorrect values for jit_max_int
+	and jit_max_long.
+
+	* dpas/dpas-scanner.l (dpas_parse_hex): ignore the 'H' on the
+	end of a hexadecimal constant.
+
+	* Makefile.am, configure.in, tests/.cvsignore, tests/Makefile.am,
+	tests/coerce.pas: check in some initial infrastructure for the
+	dpas-based test suite.
+
+	* jit/jit-type.c (jit_type_promote_int): promote ubyte and ushort
+	to uint, not int.
+
+	* jit/jit-insn.c, tests/coerce.pas: more coercion test cases and fixes.
+
+	* dpas/dpas-builtin.c, jit/jit-dump.c, jit/jit-value.c: add builtins
+	for mathematical operations.
+
+	* dpas/dpas-parser.y, jit/jit-interp.cpp, tests/Makefile.am,
+	tests/math.pas: test cases and bug fixes for mathematical operations.
+
+	* dpas/dpas-main.c, include/jit/jit-context.h, jit/jit-context.c,
+	jit/jit-insn.c, tests/Makefile.am: add the "--dont-fold" option
+	to Dynamic Pascal, so that we can run the test cases without folding.
+
+	* tests/README: add a README file to describe how to write test cases.
+
+2004-05-11  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* include/jit/jit-insn.h, jit/jit-insn.c, jit/jit-interp.cpp,
+	jit/jit-interp.h, jit/jit-opcode.c, jit/jit-rules-interp.c:
+	round out the function call handling opcodes for the interpreter.
+
+	* jit/jit-rules-interp.c, jit/jit-rules-interp.h: implement
+	the exception-handling opcodes for the interpreter.
+
+	* dpas/dpas-parser.y, dpas/dpas-scope.c, dpas/dpas-scope.h:
+	fix a bug that caused global variables in Dynamic Pascal
+	to be incorrectly allocated as locals.
+
+	* jit/jit-reg-alloc.c (_jit_regs_load_to_top_two): handle the
+	case where the second value is on the stack but not the first.
+
+	* dpas/dpas-parser.y, dpas/dpas-types.c, dpas/dpas-types.h:
+	report errors for unimplemented expressions and statements,
+	so that users are not "surprised" when things silently fail.
+
+	* .cvsignore, auto_gen.sh, configure.in, doc/.cvsignore,
+	dpas/.cvsignore, dpas/Makefile.am, include/.cvsignore,
+	jit/.cvsignore, jit/Makefile.am, jitdynamic/.cvsignore,
+	jitdynamic/Makefile.am, jitplus/.cvsignore, jitplus/Makefile.am,
+	tools/.cvsignore, tutorial/.cvsignore, tutorial/Makefile.am:
+	modify the autoconf/automake build system to use libtool.
+
+2004-05-10  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/jit-reg-alloc.c, jit/jit-reg-alloc.h, jit/jit-rules-interp.c:
+	interpreter code conversion for relative pointer and copy opcodes;
+	fix some bugs in stack-based register allocation.
+
+	* dpas/dpas-parser.y, dpas/dpas-types.c, dpas/dpas-types.h:
+	loading and storing record fields in Dynamic Pascal.
+
+	* dpas/dpas-builtin.c: implement the "New" and "Dispose" builtins.
+
+2004-05-08  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/jit-cache.c, jit/jit-cache.h, jit/jit-dump.c, jit/jit-interp.h,
+	jit/jit-rules-interp.c: add "_jit_cache_get_end_method", to allow
+	the end of a method's code to be located without explicit marking.
+
+	* configure.in, include/jit/jit-util.h, jit/jit-string.c:
+	remove the locale-sensitive string comparison routines because
+	they aren't used in libjit, and front ends will normally have
+	their own functions for this purpose.
+
+	* Makefile.am, configure.in, doc/Makefile.am, doc/libjit.texi,
+	include/jit/Makefile.am, include/jit/jit-dynamic.h,
+	include/jit/jit-util.h, jit/Makefile.am, jit/jit-dynlib.c,
+	jit/jit-mangle.c, jitdynamic/.cvsignore, jitdynamic/Makefile.am,
+	jitdynamic/jit-cpp-mangle.c, jitdynamic/jit-dynlib.c:
+	move the dynlib and C++ name mangling routines into a separate
+	"jitdynamic" library, which will handle all of the cross-language
+	naming and dynamic invocation logic.
+
+	* include/jit/jit-type.h, jit/jit-internal.h, jit/jit-type.c,
+	jitdynamic/jit-cpp-mangle.c: move the "JIT_TYPE_xxx" constants
+	into the public headers and add "jit_type_get_kind" so that
+	front end code can classify types quickly.
+
+	* jit/jit-dump.c: use "objdump" to dump compiled native code.
+
+2004-05-07  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* dpas/dpas-function.c, dpas/dpas-internal.h, dpas/dpas-main.c,
+	dpas/dpas-parser.y, jit/jit-interp.cpp, jit/jit-interp.h,
+	jit/jit-opcode.c, jit/jit-rules-interp.c: execute the "main"
+	method once a Dynamic Pascal program has been compiled;
+	fix some calling convention problems with "call_external".
+
+	* dpas/dpas-builtin.c, dpas/dpas-scanner.l: add the "Flush"
+	and "Terminate" builtins; fix a small bug in string scanning.
+
+	* include/jit/jit-elf.h, jit/Makefile.am, jit/jit-context.c,
+	jit/jit-elf-read.c, jit/jit-internal.h, jit/jit-symbol.c:
+	implement symbol relocations for the ELF binary reader.
+
+	* dpas/dpas-parser.y: code generation for "for" loops.
+
+2004-05-06  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* dpas/Makefile.am, dpas/dpas-builtin.c, dpas/dpas-function.c,
+	dpas/dpas-internal.h, dpas/dpas-main.c, dpas/dpas-parser.y,
+	dpas/dpas-scope.c, dpas/dpas-scope.h, dpas/dpas-semantics.h,
+	dpas/dpas-types.c, dpas/dpas-types.h, include/jit/jit-block.h,
+	include/jit/jit-insn.h, include/jit/jit-plus.h, jit/jit-block.c,
+	jit/jit-dump.c, jit/jit-function.c, jit/jit-insn.c, jit/jit-interp.cpp,
+	jit/jit-opcode.c, jit/jit-rules-arm.c, jit/jit-rules-interp.c,
+	jit/jit-rules-x86.c, jit/jit-type.c, jit/jit-value.c,
+	jitplus/jit-plus-function.cpp: get basic compilation working
+	in Dynamic Pascal.
+
+2004-05-03  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* tools/gen-apply.c: improve the maintainability of the apply macros.
+
+	* include/jit/jit-block.h, include/jit/jit-context.h,
+	include/jit/jit-dump.h, include/jit/jit-elf.h, include/jit/jit-init.h,
+	include/jit/jit-meta.h, include/jit/jit-type.h, include/jit/jit-util.h,
+	jit/jit-type.c, jit/jit-value.c: add more instances of JIT_NOTHROW
+	to the headers; add some special meta tags for types.
+
+	* include/jit/jit-type.h, jit/jit-type.c: tag the system-dependent
+	types so that they can be distinguished from the fixed-sized types
+	when it is necessary to do so.
+
+	* jit/Makefile.am, jit/jit-mangle.c: add the beginnings of a C++
+	name mangler, to help with extracting C++ symbols from dynamic
+	shared libraries.
+
+	* doc/Makefile.am, doc/libjit.texi, doc/mangling_rules.txt,
+	include/jit/jit-type.h, include/jit/jit-util.h, jit/jit-mangle.c,
+	jit/jit-type.c: continue the implementation of the C++ name
+	mangling routines.
+
+2004-05-01  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/jit-apply-x86.c, jit/jit-rules-x86.c, tools/gen-apply.c:
+	fix function prolog and epilog handling for structure returns
+	under x86/cdecl.
+
+	* configure.in: set the initial working version to 0.0.1.
+
+	* jit/jit-rules-x86.c: implement x86 code generation for some of
+	the basic operators.
+
+	* include/jit/jit-insn.h, include/jit/jit-opcode.h,
+	include/jit/jit-plus.h, jit/jit-insn.c, jit/jit-interp.cpp,
+	jit/jit-opcode.c, jit/jit-reg-alloc.c, jit/jit-reg-alloc.h,
+	jit/jit-rules-interp.c, jitplus/jit-plus-function.cpp:
+	add array access instructions.
+
+	* tools/gen-apply.c: clean up the builder/parser macros and
+	detect padding of the floating-point registers.
+
+2004-04-30  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* include/jit/jit-function.h, include/jit/jit-insn.h,
+	include/jit/jit-opcode.h, include/jit/jit-plus.h, jit/jit-except.cpp,
+	jit/jit-function.c, jit/jit-insn.c, jit/jit-internal.h,
+	jit/jit-interp.cpp, jit/jit-interp.h, jit/jit-opcode.c,
+	jit/jit-rules-arm.c, jit/jit-rules-interp.c, jit/jit-rules-x86.c,
+	jit/jit-rules.h, jitplus/jit-plus-function.cpp: put some
+	infrastructure in place to support "try"-related instructions.
+
+	* dpas/dpas-parser.y, dpas/dpas-scope.h, dpas/dpas-semantics.h:
+	introduce effective address based l-values into dpas.
+
+2004-04-27  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/jit-dump.c, jit/jit-reg-alloc.c: fix a register stack bug
+	in "_jit_regs_set_value"; add some more debug code.
+
+	* include/jit/jit-opcode.h, jit/jit-insn.c, jit/jit-internal.h,
+	jit/jit-interp.cpp, jit/jit-opcode.c: wrap function calls
+	with code to set up and remove exception frame information.
+
+	* jit/jit-function.c, jit/jit-insn.c, jit/jit-internal.h:
+	intuit "nothrow" and "noreturn" flags for compiled functions.
+
+	* include/jit/jit-insn.h, include/jit/jit-plus.h, jit/jit-insn.c,
+	jitplus/jit-plus-function.cpp: add "jit_insn_throw",
+	"jit_insn_rethrow", and "jit_insn_get_call_stack" to assist
+	with throwing exceptions.
+
+	* include/jit/jit-insn.h, jit/jit-block.c, jit/jit-insn.c,
+	jit/jit-internal.h: add some instructions for managing "try" blocks.
+
+	* include/jit/jit-opcode.h, jit/jit-block.c, jit/jit-insn.c,
+	jit/jit-internal.h, jit/jit-opcode.c: more work on "try" blocks.
+
+2004-04-26  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/jit-reg-alloc.c, jit/jit-reg-alloc.h: add functions to
+	assist with register allocation on stack-based architectures.
+
+	* jit/jit-rules-interp.c: implement "_jit_gen_load_value" for
+	the interpreter backend.
+
+	* jit/jit-interp.cpp, jit/jit-interp.h: fix some opcode names that
+	should be prefixed with "JIT_OP".
+
+	* jit/jit-function.c, jit/jit-internal.h, jit/jit-reg-alloc.c,
+	jit/jit-reg-alloc.h, jit/jit-rules-arm.c, jit/jit-rules-interp.c,
+	jit/jit-rules-interp.h, jit/jit-rules-x86.c, jit/jit-rules.h:
+	interpreter back end code generation for binary, unary, and
+	branch opcodes.
+
+	* doc/libjit.texi, jit/jit-rules-interp.c: fix the Texinfo section
+	markers in the "Porting" chapter.
+
+	* jit/jit-rules-interp.c: code generation for interpreter return's.
+
+	* include/jit/jit-except.h, include/jit/jit-function.h,
+	include/jit/jit-plus.h, jit/jit-except.cpp, jit/jit-function.c,
+	jit/jit-interp.cpp, jit/jit-interp.h, jit/jit-rules-interp.c,
+	jitplus/jit-plus-function.cpp: implement "jit_function_apply"
+	and "jit_function_apply_vararg" for the interpreter back end.
+
+	* jitplus/jit-plus-function.cpp: initialization errors in
+	the C++ binding.
+
+	* jit/jit-function.c, jit/jit-insn.c, jit/jit-interp.cpp,
+	jit/jit-rules-interp.c: work on code generation for function calls.
+
+	* doc/libjit.texi, include/jit/jit-insn.h, include/jit/jit-plus.h,
+	jit/jit-insn.c, jitplus/jit-plus-function.cpp, tutorial/t2.c:
+	add a "flags" parmeter to "jit_insn_call" and friends, so that
+	"nothrow", "noreturn", and "tail" options can be supplied.
+
+	* jit/jit-dump.c, jit/jit-interp.cpp, jit/jit-interp.h,
+	jit/jit-opcode.c, jit/jit-rules-interp.c: dump the translated
+	native code from "jit_dump_function" are compilation.
+
+	* jit/jit-interp.cpp, jit/jit-rules-interp.c: argument variable
+	offsets should in item units, not byte units.
+
+	* jit/jit-insn.c, jit/jit-reg-alloc.c, jit/jit-reg-alloc.h,
+	jit/jit-rules-interp.c: improve register allocation in stacks.
+
+2004-04-25  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* jit/jit-apply-func.h, jit/jit-apply-x86.c, jit/jit-apply-x86.h,
+	jit/jit-cache.c: use CPU-specifc padding for aligning code
+	areas with NOP's, for greater runtime efficiency.
+
+	* include/jit/jit-elf.h, jit/Makefile.am, jit/jit-elf-write.c:
+	add the skeleton of the ELF writing routines.
+
+	* jit/jit-interp.cpp: modify VM_BR_TARGET so that it is PIC-friendly.
+
+2004-04-24  Rhys Weatherley  <rweather@southern-storm.com.au>
+
+	* */*: Initial public release.  Most of the skeleton code is in place.
