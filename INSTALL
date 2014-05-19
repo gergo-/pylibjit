@@ -1,7 +1,10 @@
 Instructions for building and installing pylibjit. Sorry about the mess.
 
 You will need a standard Linux-ish environment, with Python 3.x (tested with
-3.2 and newer), a GCC-like C compiler, and usual development stuff.
+3.2 and newer), a GCC-like C compiler, and usual development stuff
+(including, unfortunately, flex and bison). Your Python installation will
+have to include Python's headers (Python.h in particular), which might live
+in a package called python3-dev or similar.
 
 
 1. Build and install libjit (the library that does actual code generation):
@@ -16,7 +19,12 @@ If you specified your own --prefix above, you must tell your linker where to
 find the dynamic library. For example (better solutions may exist):
 
     # Add this to startup scripts if needed.
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path/to/pylibjit/install/lib/
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path/to/libjit/lib/
+
+Even in the unlikely case that you already had libjit installed on your
+system, you will need to install the modified version from this
+distribution, and make sure below that this modified version is found by
+pylibjit.
 
 
 2. Build and install libjit-python (the Python wrapper for libjit):
@@ -32,9 +40,8 @@ find the dynamic library. For example (better solutions may exist):
 
 3. Install pylibjit (the actual Python-to-libjit compiler):
 
-    cd pylibjit
+    # in root directory
     python3 setup.py install # use sudo, or use --user to install in home dir
-    cd ..
 
 
 4. Test:
