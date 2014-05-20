@@ -249,12 +249,11 @@ def Py_DecRef(func, value):
         one = func.new_constant(1, jit.Type.int)
         with func.branch(value != nullptr) as (false, end):
             refcnt = func.insn_load_elem(value, offset, jit.Type.int) - one
-            with func.branch(refcnt != zero) as (refcnt_zero, inner_end):
-                func.insn_store_elem(value, offset, refcnt)
-                func.insn_branch(end)
-            # else:
-                func.insn_label(refcnt_zero)
+            func.insn_store_elem(value, offset, refcnt)
+            with func.branch(refcnt == zero) as (refcnt_nonzero, inner_end):
                 _Py_Dealloc(func, value)
+            # else:
+                func.insn_label(refcnt_nonzero)
         # else:
             func.insn_label(false)
     else:
