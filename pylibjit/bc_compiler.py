@@ -836,14 +836,16 @@ def bc_compiler(function, return_type, argument_types,
             # now we push a symbolic entry onto the stack and handle it
             # later.
             x = StackEntry(abstract=range, name=name)
-        elif name in api_builtins:
-            x = StackEntry(api_builtin=api_builtins[name], name=name)
-        elif name in builtins:
-            x = StackEntry(builtin=builtins[name], name=name, refcount=1)
+        # Intrinsics are checked before builtins because abs is both an
+        # "intrinsic" (there is a libjit instruction for it) and a builtin.
         elif (not late_binding and
               name in intrinsics and
               name in known_intrinsics):
             x = StackEntry(intrinsic=known_intrinsics[name], name=name)
+        elif name in api_builtins:
+            x = StackEntry(api_builtin=api_builtins[name], name=name)
+        elif name in builtins:
+            x = StackEntry(builtin=builtins[name], name=name, refcount=1)
         elif name == 'math':
             # The math module, used in lookups of the form math.log.
             x = StackEntry(abstract=math, name=name, refcount=1)
@@ -1712,6 +1714,7 @@ def bc_compiler(function, return_type, argument_types,
         }
         nonlocal known_intrinsics
         known_intrinsics = {
+                'abs':  func.insn_abs,
                 'cos':  func.insn_cos,
                 'exp':  func.insn_exp,
                 'log':  func.insn_log,
