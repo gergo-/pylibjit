@@ -540,16 +540,20 @@ class Function(jit.Function):
 
     def compute_decref_args(self, original_args):
         decref_args = False
-        # If we try to do optimized reference counting, we must
-        # still ensure that we own references to these args.
+        # If we try to do optimized reference counting, we must still ensure
+        # that we own references to these args. We should decref arguments
+        # that have freshly_allocated set (which really means that someone
+        # incremented a refcount for us) and arguments that are not boxed
+        # yet; they will be boxed, which will produce an object that we
+        # should decref later.
         fresh_args = len([a for a in original_args
-                          if a.freshly_allocated])
+                          if a.freshly_allocated or a.boxed_value is None])
         if fresh_args > 0:
             # Incref non-fresh args and make sure to later decref
             # them with the argument tuple.
             decref_args = True
             for a in original_args:
-                if not a.freshly_allocated:
+                if not a.freshly_allocated and a.boxed_value is not None:
                     Py_IncRef(self, a.boxed_value)
         return decref_args
 
@@ -616,6 +620,7 @@ class Function(jit.Function):
                     for i in range(count):
                         Py_IncRef(self, stack_entry.boxed_value)
                         stack_entry.refcount += 1
+                stack_entry.freshly_allocated = True
                 return stack_entry.boxed_value
             elif stack_entry.builtin is not None:
                 ptr = self.new_constant(obj_ptr(stack_entry.builtin))

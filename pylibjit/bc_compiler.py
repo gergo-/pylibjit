@@ -347,6 +347,7 @@ def bc_compiler(function, return_type, argument_types,
         with func.branch(w != null) as (false, end):
             PUSH(StackEntry(name=freevars[arg], boxed_value=w,
                             type=symbols[freevars[arg]].type,
+                            freshly_allocated=True,
                             refcount=1))
             func.insn_branch(end)
         # else: error
