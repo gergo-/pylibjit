@@ -309,7 +309,9 @@ def bc_compiler(function, return_type, argument_types,
         name = varnames[arg]
         if is_jit_number_type(symbols[name].type):
             if v.value is None:
-                v.value = func.unbox_value(v.boxed_value, symbols[name].type)
+                v.value = func.unbox_value(v.boxed_value, symbols[name].type,
+                                           decref=False)
+                DECREF(v)
             value = v.value
         else:
             value = func.box_stack_entry(v)
