@@ -617,7 +617,7 @@ class Function(jit.Function):
                     # instances of this object on the stack. The stack entry
                     # may have been DUP'd.
                     count = len([x for x in self.stack if x is stack_entry])
-                    for i in range(count):
+                    for i in range(count-1):
                         Py_IncRef(self, stack_entry.boxed_value)
                         stack_entry.refcount += 1
                 stack_entry.freshly_allocated = True

@@ -140,7 +140,6 @@ def GLOBAL_DECREF(func, x):
 def bc_compiler(function, return_type, argument_types,
                 variables, global_vars, constant_size, intrinsics,
                 dump_code, verbose):
-
     if fully_dynamic_typing:
         def transform_to_object(t):
             return object if isinstance(t, jit.Type) else t
@@ -1321,8 +1320,19 @@ def bc_compiler(function, return_type, argument_types,
                       'label =', loop_stack[-1].label)
             # Sometimes this is off by 3. FIXME: Understand generation of
             # loops in more detail.
+            found_loop_stack_entry = False
             if (loop_stack[-1].label == loop_target or
                 loop_stack[-1].label == loop_target + 3):
+                found_loop_stack_entry = True
+            elif dis.opname[code[loop_target]] == 'JUMP_ABSOLUTE':
+                # Follow the jump.
+                loop_target = operand_value(code, loop_target)
+                if (loop_stack[-1].label == loop_target or
+                    loop_stack[-1].label == loop_target + 3 or
+                    loop_stack[-1].label + 3 == loop_target):
+                    found_loop_stack_entry = True
+
+            if found_loop_stack_entry:
                 assert loop_stack[-1].iterator is None
                 loop_stack[-1].iterator = TOP().boxed_value
                 # If the next instruction is STORE_FAST, also store that
@@ -1333,6 +1343,9 @@ def bc_compiler(function, return_type, argument_types,
                     iter_var = symbols[varnames[var_index]].location
                     iter_var = None  # FIXME
                     loop_stack[-1].iter_var = iter_var
+            else:
+                raise CompileError('no loop stack entry at FOR_ITER ' +
+                                   str(offset) + ', control flow too complex?')
         # General implementation.
         v = POP()
         x = PyJIT_iternext(func, v.boxed_value)
