@@ -66,9 +66,56 @@ def bc_compile(*, return_type=None, argument_types=[], variables={},
         function_table[module][name] = machine_code
         if dump_code or verbose:
             sys.stdout.flush()
+
+        call_wrapper = compile_wrapper(name, machine_code,
+                                       return_type, argument_types)
+        set_wrapper(machine_code, call_wrapper)
+
         return machine_code
 
     return function_compiler
+
+def compile_wrapper(name, machine_code, return_type, argument_types):
+    @builder(return_type=object,
+             argument_types=[object, object, object],
+             dump_code=False)
+    def make_wrapper(func):
+        # three arguments: function object, args (tuple), keyword arguments
+        # (ignore, must be NULL)
+        # First, grab the arguments and decode accoring to the signature we
+        # were given.
+        # FIXME: Handle self arg.
+        unboxed_arguments = []
+      # self_arg = get_self_arg(func, func.get_param(0))
+      # if self_arg:
+      #     unboxed_arguments.append(self_arg)
+        if argument_types:
+            args = func.get_param(1)
+            args = PyArray_AsPointer(func, args)
+            for i, t in enumerate(argument_types):
+                arg = func.insn_load_elem(args, func.new_constant(i),
+                                          jit.Type.void_ptr)
+                if is_jit_number_type(t):
+                    arg = func.unbox_value(arg, t, decref=False)
+                # TODO: Otherwise, incref the arg? That's what the C++
+                # wrapper does, though I don't know why it does it.
+                unboxed_arguments.append(arg)
+        # Call the wrapped code.
+        retval = func.insn_call(name, machine_code,
+                                machine_code.create_signature(),
+                                unboxed_arguments)
+        # Box the return value if needed.
+        if is_jit_number_type(return_type):
+            retval = func.box_value(retval)
+        # Or if the function returns no value, return None.
+        elif return_type == jit.Type.void:
+            retval = func.new_constant(obj_ptr(None), jit.Type.void_ptr)
+        # TODO: Clean up reference counts?
+        func.insn_return(retval)
+    return make_wrapper
+
+def get_self_arg(function):
+    print('TODO: get_self_arg({})'.format(function))
 
 class StackEntry:
     def __init__(self, name=None, value=None, boxed_value=None, type=None,

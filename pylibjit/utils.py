@@ -106,6 +106,7 @@ PythonCall(jitlib.jitlib_nop, jit.Type.void, [])
 PythonCall(jitlib.jitlib_nop_1, jit.Type.void, [jit.Type.void_ptr])
 PythonCall(jitlib.jitlib_nop_2, jit.Type.void, [jit.Type.void_ptr] * 2)
 PythonCall(jitlib.jit_binaryfunc, jit.Type.void_ptr, [jit.Type.void_ptr] * 2)
+# PythonCall(jitlib.get_self_arg, jit.Type.void_ptr, [jit.Type.void_ptr])
 
 py_int_binaryfunc = jitlib.py_int_binaryfunc
 py_int_binaryfunc.argtypes = (ctypes.c_int,)
@@ -118,6 +119,10 @@ py_float_binaryfunc.restype = ctypes.c_void_p
 obj_ptr = jitlib.obj_ptr
 obj_ptr.argtypes = (ctypes.py_object,)
 obj_ptr.restype = ctypes.c_void_p
+
+set_wrapper = jitlib.set_wrapper
+set_wrapper.argtypes = (ctypes.py_object, ctypes.py_object)
+# set_wrapper.restype = void
 
 def some_function():
     pass

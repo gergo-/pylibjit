@@ -552,6 +552,23 @@ _wrap_PyJit_function__descr_get__(PyJit_function *self, PyObject *obj, PyObject 
 _wrap_PyJit_function__call__ = r'''
 extern "C" void obj_printer(PyObject *);
 
+// forward decl, generated definition follows below
+PyObject * _wrap_PyJit_function___call__(PyJit_function *self, PyObject *args);
+
+extern "C" void set_wrapper(PyJit_function *target, PyJit_function *wrapper)
+{
+    void *wrapper_address = wrapper->obj->closure();
+    PyTypeObject *type = ((PyObject *) target)->ob_type;
+    // Each function we jit has its very own class, so we can overwrite the
+    // call slot with a function-specific wrapper. Just to be on the safe
+    // side, make sure that the thing we overwrite is the generic wrapper.
+    if (type->tp_call != (ternaryfunc) _wrap_PyJit_function___call__) {
+        abort();
+    }
+    // Now actually set the wrapper.
+    type->tp_call = (ternaryfunc) wrapper_address;
+}
+
 union jit_arg {
     PyObject *a_py_object;
     jit_sbyte   a_sbyte;
