@@ -113,6 +113,7 @@ jit_function::~jit_function()
 #include <cstdio>
 #include <jit/jit-dump.h>
 
+// GB
 void jit_function::dump() const
 {
     jit_dump_function(stdout, raw(), "<some jit function>");

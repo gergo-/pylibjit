@@ -1,6 +1,34 @@
+2014-06-18  Aleksey Demakov  <ademakov@gmail.com>
+
+	* jit/jit-value.c (jit_value_get_param): add range check for param
+	argument (thanks Niklas Koep).
+
+2014-03-11  Niklas Koep  <niklas.koep@gmail.com>
+
+	* doc/Makefile.am, doc/libjit.texi: Include docs from jit-compile.c.
+
+2014-01-21  John Perkins  <jeperk70@gmail.com>
+
+	* doc/libjit.texi: Fix makeinfo problem with newer texinfo.
+
+2014-01-20  Ben Noordhuis  <info@bnoordhuis.nl>
+
+	* jit/jit-thread.c (_jit_thread_init): Fix Windows-only race
+	condition.
+
+2013-10-17  Aleksey Demakov  <ademakov@gmail.com>
+
+	* README, doc/libjit.texi: Update info on obtaining libjit sources.
+
+2013-08-13  Chetan Reddy  <chetanreddy@gmail.com>
+
+	* jit/jit-memory-cache.c (_jit_cache_start_function): If there is no
+	room left for a cache node on the current page then let restart with
+	a new page rather than giving up on it.
+
 2013-03-04  Aleksey Demakov  <ademakov@gmail.com>
 
-	* jit/jit-memory-cache.c (jit/jit-memory-cache.c): the function now
+	* jit/jit-memory-cache.c (_jit_cache_extend): the function now
 	returns a value (thanks Alexey Galakhov <agalakhov@gmail.com>).
 
 	* include/jit/jit-memory.h, jit/jit-internal.h, jit/jit-memory.c:

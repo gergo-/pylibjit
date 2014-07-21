@@ -219,9 +219,6 @@ void jit_dump_value(FILE *stream, jit_function_t func, jit_value_t value, const 
 
 			default:
 			{
-                fprintf(stream, "[[kind: %d]]", 
-                        (jit_type_promote_int
-                                             (jit_type_normalize(const_value.type)))->kind);
 				name = "<unknown-constant>";
 			}
 			break;
@@ -349,7 +346,7 @@ static void dump_value(FILE *stream, jit_function_t func,
 }
 
 /*@
- * @deftypefun void jit_dump_insn (FILE *@var{stream}, jit_function_t @var{func}, jit_value_t @var{value})
+ * @deftypefun void jit_dump_insn (FILE *@var{stream}, jit_function_t @var{func}, jit_insn_t @var{insn})
  * Dump the contents of an instruction to a stdio stream.
  * @end deftypefun
 @*/
@@ -904,7 +901,6 @@ void jit_dump_function(FILE *stream, jit_function_t func, const char *name)
 		dump_interp_code(stream, (void **)(interp + 1), (void **)end);
 #else
 		dump_object_code(stream, start, end);
-        fprintf(stream, "entry point: %p\n", func->entry_point);
 #endif
 	}
 
