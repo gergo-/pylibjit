@@ -106,7 +106,7 @@ PythonCall(jitlib.jitlib_nop, jit.Type.void, [])
 PythonCall(jitlib.jitlib_nop_1, jit.Type.void, [jit.Type.void_ptr])
 PythonCall(jitlib.jitlib_nop_2, jit.Type.void, [jit.Type.void_ptr] * 2)
 PythonCall(jitlib.jit_binaryfunc, jit.Type.void_ptr, [jit.Type.void_ptr] * 2)
-# PythonCall(jitlib.get_self_arg, jit.Type.void_ptr, [jit.Type.void_ptr])
+PythonCall(jitlib.get_self_arg, jit.Type.void_ptr, [jit.Type.void_ptr])
 
 py_int_binaryfunc = jitlib.py_int_binaryfunc
 py_int_binaryfunc.argtypes = (ctypes.c_int,)

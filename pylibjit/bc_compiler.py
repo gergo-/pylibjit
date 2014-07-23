@@ -51,8 +51,10 @@ def bc_compile(*, return_type=None, argument_types=[], variables={},
             sys.stdout.flush()
         module = function.__module__
         name = function.__name__
+        is_method = False
         context = extract_context_name()
         if context is not None and context != '<module>':
+            is_method = True
             name = context + '.' + name
         assert name not in function_table[module]
         # Make an entry for this function in the function table. We don't
@@ -68,14 +70,16 @@ def bc_compile(*, return_type=None, argument_types=[], variables={},
             sys.stdout.flush()
 
         call_wrapper = compile_wrapper(name, machine_code,
-                                       return_type, argument_types)
+                                       return_type, argument_types,
+                                       is_method)
         set_wrapper(machine_code, call_wrapper)
 
         return machine_code
 
     return function_compiler
 
-def compile_wrapper(name, machine_code, return_type, argument_types):
+def compile_wrapper(name, machine_code, return_type, argument_types,
+                    is_method):
     @builder(return_type=object,
              argument_types=[object, object, object],
              dump_code=False)
@@ -84,15 +88,19 @@ def compile_wrapper(name, machine_code, return_type, argument_types):
         # (ignore, must be NULL)
         # First, grab the arguments and decode accoring to the signature we
         # were given.
-        # FIXME: Handle self arg.
+        arg_types = argument_types
         unboxed_arguments = []
-      # self_arg = get_self_arg(func, func.get_param(0))
-      # if self_arg:
-      #     unboxed_arguments.append(self_arg)
-        if argument_types:
+        if is_method:
+            self_arg = get_self_arg(func, func.get_param(0))
+            if self_arg:
+                unboxed_arguments.append(self_arg)
+            # Now we have accounted for the first argument type, so in the
+            # loop below, only look at the remaining ones.
+            arg_types = arg_types[1:]
+        if arg_types:
             args = func.get_param(1)
             args = PyArray_AsPointer(func, args)
-            for i, t in enumerate(argument_types):
+            for i, t in enumerate(arg_types):
                 arg = func.insn_load_elem(args, func.new_constant(i),
                                           jit.Type.void_ptr)
                 if is_jit_number_type(t):
@@ -100,6 +108,8 @@ def compile_wrapper(name, machine_code, return_type, argument_types):
                 # TODO: Otherwise, incref the arg? That's what the C++
                 # wrapper does, though I don't know why it does it.
                 unboxed_arguments.append(arg)
+        # Make sure all arguments are accounted for.
+        assert len(unboxed_arguments) == len(arg_types)+(1 if is_method else 0)
         # Call the wrapped code.
         retval = func.insn_call(name, machine_code,
                                 machine_code.create_signature(),
@@ -113,9 +123,6 @@ def compile_wrapper(name, machine_code, return_type, argument_types):
         # TODO: Clean up reference counts?
         func.insn_return(retval)
     return make_wrapper
-
-def get_self_arg(function):
-    print('TODO: get_self_arg({})'.format(function))
 
 class StackEntry:
     def __init__(self, name=None, value=None, boxed_value=None, type=None,

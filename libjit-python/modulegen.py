@@ -569,6 +569,17 @@ extern "C" void set_wrapper(PyJit_function *target, PyJit_function *wrapper)
     type->tp_call = (ternaryfunc) wrapper_address;
 }
 
+extern "C" PyObject *
+get_self_arg(PyJit_function *func)
+{
+    PyObject *self_token = get_self_token();
+    if (func->inst_dict != NULL &&
+        PyDict_Contains(func->inst_dict, self_token)) {
+        return PyDict_GetItem(func->inst_dict, self_token);
+    }
+    return NULL;
+}
+
 union jit_arg {
     PyObject *a_py_object;
     jit_sbyte   a_sbyte;
@@ -611,13 +622,11 @@ _wrap_PyJit_function__call__(PyJit_function *self, PyObject *args, PyObject **re
  // obj_printer(args);
     n_params = PyTuple_Size(args);
     int extra_arg = 0;
-    PyObject *self_token = get_self_token();
-    if (self->inst_dict != NULL &&
-        PyDict_Contains(self->inst_dict, self_token)) {
+    element = get_self_arg(self);
+    if (element) {
         extra_arg = 1;
      // jit_type_t param = jit_type_get_param(signature, 0);
      // call_args[0] = jit_malloc(jit_type_get_size(param));
-        PyObject *element = PyDict_GetItem(self->inst_dict, self_token);
      // *(void **)call_args[0] = element;
         call_args_array[0].a_py_object = element;
      // printf("call arg 0: self pointer %p\n", element);
