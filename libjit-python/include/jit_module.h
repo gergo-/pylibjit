@@ -145,6 +145,7 @@ public:
             // gergo was here!
             #define PYJIT_TYPE_ARRAY 20
             #define PYJIT_TYPE_BOOL  21
+            #define PYJIT_TYPE_TUPLE 22
             extern "C" void *PyArray_AsPointer(PyObject *);
             extern "C" PyObject *get_self_token(void);
 

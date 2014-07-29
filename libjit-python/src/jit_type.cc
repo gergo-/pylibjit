@@ -152,6 +152,15 @@ _wrap_PyJit_type__get_is_bool(PyJit_type *self, void * PYBINDGEN_UNUSED(closure)
 }
 
 static PyObject *
+_wrap_PyJit_type__get_is_tuple(PyJit_type *self, void * PYBINDGEN_UNUSED(closure))
+{
+    PyObject *py_retval;
+    
+    py_retval = Py_BuildValue((char *) "N", PyBool_FromLong(self->obj->is_tuple()));
+    return py_retval;
+}
+
+static PyObject *
 _wrap_PyJit_type__get_is_pointer(PyJit_type *self, void * PYBINDGEN_UNUSED(closure))
 {
     PyObject *py_retval;
@@ -173,6 +182,13 @@ static PyGetSetDef PyJit_type__getsets[] = {
     {
         (char*) "num_params", /* attribute name */
         (getter) _wrap_PyJit_type__get_num_params, /* C function to get the attribute */
+        (setter) NULL, /* C function to set the attribute */
+        NULL, /* optional doc string */
+        NULL /* optional additional data for getter and setter */
+    },
+    {
+        (char*) "is_pointer", /* attribute name */
+        (getter) _wrap_PyJit_type__get_is_pointer, /* C function to get the attribute */
         (setter) NULL, /* C function to set the attribute */
         NULL, /* optional doc string */
         NULL /* optional additional data for getter and setter */
@@ -241,8 +257,8 @@ static PyGetSetDef PyJit_type__getsets[] = {
         NULL /* optional additional data for getter and setter */
     },
     {
-        (char*) "is_pointer", /* attribute name */
-        (getter) _wrap_PyJit_type__get_is_pointer, /* C function to get the attribute */
+        (char*) "is_tuple", /* attribute name */
+        (getter) _wrap_PyJit_type__get_is_tuple, /* C function to get the attribute */
         (setter) NULL, /* C function to set the attribute */
         NULL, /* optional doc string */
         NULL /* optional additional data for getter and setter */
@@ -498,6 +514,19 @@ _wrap_PyJit_type__get_bool(PyObject * PYBINDGEN_UNUSED(obj),  void * PYBINDGEN_U
     return py_retval;
 }
 
+static PyObject *
+_wrap_PyJit_type__get_tuple_t(PyObject * PYBINDGEN_UNUSED(obj),  void * PYBINDGEN_UNUSED(closure))
+{
+    PyObject *py_retval;
+    PyJit_type *py_jit_type;
+    
+    py_jit_type = PyObject_New(PyJit_type, &PyJit_type_Type);
+    py_jit_type->obj = jit_type::t_tuple();
+    py_jit_type->flags = PYBINDGEN_WRAPPER_FLAG_NONE;
+    py_retval = Py_BuildValue((char *) "N", py_jit_type);
+    return py_retval;
+}
+
 static PyGetSetDef Jit_typeMeta__getsets[] = {
     {
         (char*) "short", /* attribute name */
@@ -579,6 +608,13 @@ static PyGetSetDef Jit_typeMeta__getsets[] = {
     {
         (char*) "nfloat", /* attribute name */
         (getter) _wrap_PyJit_type__get_nfloat, /* C function to get the attribute */
+        (setter) NULL, /* C function to set the attribute */
+        NULL, /* optional doc string */
+        NULL /* optional additional data for getter and setter */
+    },
+    {
+        (char*) "tuple_t", /* attribute name */
+        (getter) _wrap_PyJit_type__get_tuple_t, /* C function to get the attribute */
         (setter) NULL, /* C function to set the attribute */
         NULL, /* optional doc string */
         NULL /* optional additional data for getter and setter */

@@ -1427,9 +1427,10 @@ def bc_compiler(function, return_type, argument_types,
         container, index = v, w
         assert container.name
         name = container.name + '[]'
-        # There are three cases here:
+        # There are a few similar cases here:
         # - array with numeric index
         # - list with numeric index
+        # - tuple with numeric index
         # - any kind of container with any kind of index
         if container.name and container.name in cached_base_addresses:
             print('TODO: cached access!')
@@ -1470,6 +1471,15 @@ def bc_compiler(function, return_type, argument_types,
             x = StackEntry(value=value, boxed_value=boxed_value,
                            type=base_type, name=name, refcount=1,
                            freshly_allocated=True)
+        elif (not bounds_checking and
+              is_tuple(container.boxed_value) and
+              is_jit_number(index.value)):
+            base = PyArray_AsPointer(func, container.boxed_value)
+            base_type = jit.Type.void_ptr
+            boxed_value = func.insn_load_elem(base, index.value, base_type)
+            Py_IncRef(func, boxed_value)
+            x = StackEntry(boxed_value=boxed_value, type=base_type,
+                           name=name, refcount=1, freshly_allocated=True)
         else:
             getitem_target = None
             if (container.type is not object and
@@ -1532,9 +1542,10 @@ def bc_compiler(function, return_type, argument_types,
             print('container', container)
             print('index', index)
             print('value', value)
-        # There are three cases here:
+        # There are a few similar cases here:
         # - array with numeric index
         # - list with numeric index
+        # - tuple with numeric index
         # - any kind of container with any kind of index
         if container.name and container.name in cached_base_addresses:
             print('TODO: cached access!')
@@ -1550,6 +1561,19 @@ def bc_compiler(function, return_type, argument_types,
             func.insn_store_elem(base, index.value, value)
         elif (not bounds_checking and
               isinstance(container.type, list) and
+              is_jit_number(index.value)):
+            base = PyArray_AsPointer(func, container.boxed_value)
+            old = func.insn_load_elem(base, index.value, jit.Type.void_ptr)
+            Py_DecRef(func, old)
+            if value.boxed_value is None:
+                # This does not use box_stack_entry but performs an explicit
+                # incref. Is that very good?
+                value.boxed_value = func.box_value(value.value)
+                value.refcount = 1
+            func.insn_store_elem(base, index.value, value.boxed_value)
+            Py_IncRef(func, value.boxed_value)
+        elif (not bounds_checking and
+              is_tuple(container.boxed_value) and
               is_jit_number(index.value)):
             base = PyArray_AsPointer(func, container.boxed_value)
             old = func.insn_load_elem(base, index.value, jit.Type.void_ptr)

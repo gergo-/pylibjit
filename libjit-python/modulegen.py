@@ -1183,6 +1183,7 @@ def register_Jit_function_methods(root_module, cls):
             // gergo was here!
             #define PYJIT_TYPE_ARRAY 20
             #define PYJIT_TYPE_BOOL  21
+            #define PYJIT_TYPE_TUPLE 22
             extern "C" void *PyArray_AsPointer(PyObject *);
             extern "C" PyObject *get_self_token(void);
         ''');
@@ -2316,6 +2317,11 @@ def register_Jit_type_methods(root_module, cls):
                                is_const=True,
                                getter='is_bool')
 
+    cls.add_instance_attribute('is_tuple',
+                               'bool',
+                               is_const=True,
+                               getter='is_tuple')
+
     cls.add_instance_attribute('is_pointer',
                                'bool',
                                is_const=True,
@@ -2330,6 +2336,9 @@ def register_Jit_type_methods(root_module, cls):
                    retval('jit_type *', caller_owns_return=False),
                    [param('jit_type_t', 'type')],
                    is_static=True)
+
+    cls.add_static_attribute('tuple_t', JitStaticAttrReturn('tuple'),
+                             is_const=True)
 
     cls.add_method('create_pointer',
                    retval('jit_type *', caller_owns_return=True),

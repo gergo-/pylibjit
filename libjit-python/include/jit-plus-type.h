@@ -76,6 +76,12 @@ public:
             jit_type_t tagged = jit_type_get_tagged_type(other);
             m_ref_type = jit_type_copy(jit_type_get_ref(tagged));
             m_name = "bool";
+        } else if (jit_type_is_tagged(other) &&
+                   jit_type_get_tagged_kind(other) == 22) {
+            m_type = jit_type_copy(other);
+            jit_type_t tagged = jit_type_get_tagged_type(other);
+            m_ref_type = jit_type_copy(jit_type_get_ref(tagged));
+            m_name = "tuple";
         } else if (jit_type_get_kind(other) <= JIT_TYPE_MAX_PRIMITIVE) {
          // printf("can't make type %d\n", jit_type_get_kind(other));
             if (jit_type_get_kind(other) == JIT_TYPE_INVALID) {
@@ -200,6 +206,22 @@ public:
         jit_type *t = t_array(ref_type);
      // printf("array_t => %p ", t);
      // t->name();
+        return t;
+    }
+
+    static jit_type *t_tuple() {
+        jit_type_t pointer_type = jit_type_void_ptr;
+        jit_type *t = create_tagged(pointer_type,
+                                    /* tag: */ 22 /* PYJIT_TYPE_TUPLE */,
+                                    /* extra data: */ NULL,
+                                    /* free function: */ free,
+                                    /* incref: */ 1);
+        t->m_name = "tuple";
+        return t;
+    }
+
+    static jit_type *tuple_t() {
+        jit_type *t = t_tuple();
         return t;
     }
 
@@ -360,6 +382,10 @@ public:
         return is_tagged() && jit_type_get_tagged_kind(m_type) == 21;
     }
 
+    int is_tuple() const {
+        return is_tagged() && jit_type_get_tagged_kind(m_type) == 22;
+    }
+
     int is_pointer() const { return jit_type_is_pointer(m_type); }
 
     int is_tagged() const { return jit_type_is_tagged(m_type); }
@@ -394,8 +420,13 @@ public:
             printf("pointer ");
         else if (is_array())
             printf("array ");
-        if (is_pointer() || is_array() || m_ref_type)
-            printf("type <%s> with ref %p\n", m_name, m_ref_type);
+        if (is_pointer() || is_array() || m_ref_type) {
+            printf("type <%s> with ref %p", m_name, m_ref_type);
+            if (is_tagged())
+                printf(" and tag %d\n", jit_type_get_tagged_kind(m_type));
+            else
+                printf("\n");
+        }
         else
             printf("type <%s>\n", m_name);
     }

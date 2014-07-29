@@ -301,6 +301,12 @@ def is_list(obj, type):
     print('is list?', obj, isinstance(type, list))
     return isinstance(type, list)
 
+def is_tuple(obj):
+    try:
+        return obj.type.is_tuple
+    except:
+        return False
+
 function_table = collections.defaultdict(dict)
 
 Argument = collections.namedtuple('Argument', ['type', 'idx'])
