@@ -1293,11 +1293,13 @@ def bc_compiler(function, return_type, argument_types,
 
     def BUILD_TUPLE(func, arg, offset):
         x = PyTuple_New(func, func.new_constant(arg, jit.Type.int))
-        while arg > 0:
-            arg -= 1
-            w = POP()
-            index = func.new_constant(arg, jit.Type.int)
-            PyTuple_SetItem(func, x, index, func.box_stack_entry(w))
+        if arg:
+            base = PyArray_AsPointer(func, x)
+            while arg > 0:
+                arg -= 1
+                w = POP()
+                index = func.new_constant(arg, jit.Type.int)
+                func.insn_store_elem(base, index, func.box_stack_entry(w))
         x = StackEntry(boxed_value=x, refcount=1)
         PUSH(x)
 
