@@ -128,7 +128,7 @@ class StackEntry:
     def __init__(self, name=None, value=None, boxed_value=None, type=None,
                  jit_type=None, abstract=None, builtin=None, api_builtin=None,
                  intrinsic=None, self_ptr=None, constant=None,
-                 freshly_allocated=None, refcount=None):
+                 constant_idx=None, freshly_allocated=None, refcount=None):
         self.name = name
         self.value = value
         self.boxed_value = boxed_value
@@ -140,6 +140,7 @@ class StackEntry:
         self.intrinsic = intrinsic
         self.self_ptr = self_ptr
         self.constant = constant
+        self.constant_idx = constant_idx
         self.freshly_allocated = freshly_allocated
         self.refcount = refcount
 
@@ -428,7 +429,7 @@ def bc_compiler(function, return_type, argument_types,
         # We just need to be aware that None is a valid boxed value.
         if value is not None or boxed is not None:
             x = StackEntry(value=value, name=name, type=type, refcount=2,
-                           constant=boxed)
+                           constant=boxed, constant_idx=arg)
         else:
             x = StackEntry(boxed_value=boxed, name=name, type=type, refcount=1)
         INCREF(x)
@@ -1253,26 +1254,59 @@ def bc_compiler(function, return_type, argument_types,
         v = POP()
         sequence = v.boxed_value or v.constant
         assert sequence is not None
-        N = func.new_constant(arg, jit.Type.int)
-        with func.branch(PyObject_Size(func, sequence) != N) as (false, end):
-            # oops, cause exception to be raised
-            null = func.make_null_ptr()
-            func.insn_return(null)
-        # else: OK
-            func.insn_label(false)
-        items = PyArray_AsPointer(func, sequence)
-        base_type = jit.Type.void_ptr
-        while arg > 0:
-            arg -= 1
-            index = func.new_constant(arg, jit.Type.int)
-            x = func.insn_load_elem(items, index, base_type)
-            # Set these refcounts to 0 here; the incref will increment them
-            # to 1 afterwards. In reality, there are still references from
-            # the tuple (v), but those will disappear with the decref below.
-            w = StackEntry(boxed_value=x, type=base_type, refcount=0,
-                           freshly_allocated=True)
-            INCREF(w)
-            PUSH(w)
+        if (sequence is v.constant and
+            len(consts[v.constant_idx]) == arg and
+            [dis.opname[c] for c in [code[offset+i*3] for i in range(1,arg+1)]]
+                == ['STORE_FAST'] * arg):
+            # This is a constant sequence which is being unpacked into just
+            # the right number of variables. Access the elements directly
+            # and unbox if necessary.
+            while arg > 0:
+                arg -= 1
+                store_idx = offset + (arg+1) * 3
+                element = consts[v.constant_idx][arg]
+                name = str(element)
+                varname = varnames[operand_value(code, store_idx)]
+                if is_jit_number_type(symbols[varname].type):
+                    typ = symbols[varname].type
+                    t_unboxed, unboxed = maybe_unbox_constant(func, element)
+                    if t_unboxed == typ:
+                        unboxed_value = func.new_constant(element, typ)
+                    else:
+                        unboxed_value = func.insn_convert(unboxed, typ)
+                    w = StackEntry(value=unboxed, type=typ, refcount=0,
+                                   name=name, freshly_allocated=True)
+                else:
+                    element = func.new_constant(obj_ptr(element),
+                                                jit.Type.void_ptr)
+                    w = StackEntry(boxed_value=element,
+                                   type=jit.Type.void_ptr, refcount=0,
+                                   name=name, freshly_allocated=True)
+                    INCREF(w)
+                PUSH(w)
+        else:
+            # General case: Unpack at execution time.
+            N = func.new_constant(arg, jit.Type.int)
+            with func.branch(PyObject_Size(func,sequence) != N) as (false,end):
+                # oops, cause exception to be raised
+                null = func.make_null_ptr()
+                func.insn_return(null)
+            # else: OK
+                func.insn_label(false)
+            items = PyArray_AsPointer(func, sequence)
+            base_type = jit.Type.void_ptr
+            while arg > 0:
+                arg -= 1
+                index = func.new_constant(arg, jit.Type.int)
+                x = func.insn_load_elem(items, index, base_type)
+                # Set these refcounts to 0 here; the incref will increment
+                # them to 1 afterwards. In reality, there are still
+                # references from the tuple (v), but those will disappear
+                # with the decref below.
+                w = StackEntry(boxed_value=x, type=base_type, refcount=0,
+                               freshly_allocated=True)
+                INCREF(w)
+                PUSH(w)
         DECREF(v)
 
     def BUILD_LIST(func, arg, offset):
