@@ -981,7 +981,7 @@ extern "C" int InitializeArrayOffset(void)
     return PyArray_buffer_offset;
 }
 
-extern "C" void *PyArray_AsPointer(PyObject *array)
+extern "C" void *PyBuffer_BasePointer(PyObject *array)
 {
     if (PyArray_buffer_offset == -1)
     {
@@ -1184,7 +1184,7 @@ def register_Jit_function_methods(root_module, cls):
             #define PYJIT_TYPE_ARRAY 20
             #define PYJIT_TYPE_BOOL  21
             #define PYJIT_TYPE_TUPLE 22
-            extern "C" void *PyArray_AsPointer(PyObject *);
+            extern "C" void *PyBuffer_BasePointer(PyObject *);
             extern "C" PyObject *get_self_token(void);
         ''');
       # helper_class.add_post_generation_code(_wrap_PyJit_function__descr_get__)

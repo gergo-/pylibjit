@@ -41,7 +41,7 @@ def get_ast(function):
     return funcdef
 
 def compiler(function_def, function, return_type, argument_types,
-             variables, global_vars, constant_size, intrinsics,
+             variables, global_vars, fixed_buffers, intrinsics,
              verbose):
     assert len(function_def.args.args) == len(argument_types)
     symbols = dict()
@@ -120,11 +120,11 @@ def compiler(function_def, function, return_type, argument_types,
                 name = access_path(expr)
                 if name and name in cached_base_addresses:
                     return cached_base_addresses[name]
-                elif name and name in constant_size:
-                    base = PyArray_AsPointer(func, array_or_list)
+                elif name and name in fixed_buffers:
+                    base = PyBuffer_BasePointer(func, array_or_list)
                     cached_base_addresses[name] = base
                     return base
-            base = PyArray_AsPointer(func, array_or_list)
+            base = PyBuffer_BasePointer(func, array_or_list)
             return base
 
         def container_store(base, index, val, expr=None):
@@ -444,7 +444,7 @@ def compiler(function_def, function, return_type, argument_types,
                         # It's a variable.
                         var = symbols[target.id]
                         if (access_path(target) and
-                            access_path(target) in constant_size):
+                            access_path(target) in fixed_buffers):
                             # This is *the* single assignment to this thing.
                             # See if the value's base address should be
                             # cached.
@@ -539,7 +539,7 @@ def compiler(function_def, function, return_type, argument_types,
                     typ = jit.Type.void_ptr
                 symbols[name] = Local(typ, func.new_value(typ, val),
                                       is_argument=True)
-                if name in constant_size:
+                if name in fixed_buffers:
                     # Force precomputation of base_address.
                     base_address(symbols[name].location,
                                  AST.Name(name, AST.Load()))
@@ -574,14 +574,14 @@ def compiler(function_def, function, return_type, argument_types,
     return function_builder
 
 def ast_compiler(*, return_type, argument_types=[], variables={},
-                 global_vars={}, constant_size=set(), intrinsics=set(),
+                 global_vars={}, fixed_buffers=set(), intrinsics=set(),
                  verbose=False):
     def function_compiler(function):
         ast = get_ast(function)
         if verbose:
             print(AST.dump(ast))
         code = compiler(ast, function, return_type, argument_types,
-                        variables, global_vars, constant_size, intrinsics,
+                        variables, global_vars, fixed_buffers, intrinsics,
                         verbose)
         setattr(code, '__original_function__', function)
         module = function.__module__

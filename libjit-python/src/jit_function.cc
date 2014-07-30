@@ -3702,7 +3702,7 @@ extern "C" int InitializeArrayOffset(void)
     return PyArray_buffer_offset;
 }
 
-extern "C" void *PyArray_AsPointer(PyObject *array)
+extern "C" void *PyBuffer_BasePointer(PyObject *array)
 {
     if (PyArray_buffer_offset == -1)
     {

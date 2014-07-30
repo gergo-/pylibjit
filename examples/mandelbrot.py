@@ -61,7 +61,7 @@ compile_mandel_line = \
                      argument_types=[jit.Type.int, jit.Type.int,
                                      jit.Type.array_t(jit.Type.float64)],
                      variables={'j': jit.Type.int, 'p': jit.Type.float64},
-                     constant_size={'results'},
+                     fixed_buffers={'results'},
                      dump_code=False)
 
 def mandel_line(i, N, results):

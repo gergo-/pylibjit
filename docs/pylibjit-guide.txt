@@ -239,6 +239,16 @@ intrinsics=set()
     unqualified names of functions from the math module, for example
     {'math.sin', 'log'}.
 
+fixed_buffers=set()
+    A set of variable names that reference tuples, lists, or arrays whose
+    underlying memory areas remain in one place during each execution of the
+    function. Such variables must be function arguments or assigned exactly
+    once in the function; they may be indexed for reading or writing, but
+    not modified by other means (such as calling append on a list). These
+    conditions are not checked by pylibjit.
+    Declaring this property allows aggressive optimizations that are only
+    valid if the memory area's location does not change.
+
 dump_code=True
     Dump various program representations (source code; bytecode; libjit
     intermediate code; assembly code) to stdout. Shows you that the compiler

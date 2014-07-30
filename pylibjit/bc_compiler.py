@@ -33,7 +33,7 @@ def this_class():
     return collections.namedtuple(class_name, [])  # easy way to make new class
 
 def bc_compile(*, return_type=None, argument_types=[], variables={},
-               global_vars={}, constant_size=set(), intrinsics=set(),
+               global_vars={}, fixed_buffers=set(), intrinsics=set(),
                dump_code=True, verbose=False):
     if return_type is None:
         return_type = object
@@ -62,7 +62,7 @@ def bc_compile(*, return_type=None, argument_types=[], variables={},
         # this name to be known; there might be a recursive call.
         function_table[module][name] = None
         machine_code = bc_compiler(function, return_type, argument_types,
-                                   variables, global_vars, constant_size,
+                                   variables, global_vars, fixed_buffers,
                                    intrinsics, dump_code, verbose)
         setattr(machine_code, '__original_function__', function)
         function_table[module][name] = machine_code
@@ -99,7 +99,7 @@ def compile_wrapper(name, machine_code, return_type, argument_types,
             arg_types = arg_types[1:]
         if arg_types:
             args = func.get_param(1)
-            args = PyArray_AsPointer(func, args)
+            args = PyBuffer_BasePointer(func, args)
             for i, t in enumerate(arg_types):
                 arg = func.insn_load_elem(args, func.new_constant(i),
                                           jit.Type.void_ptr)
@@ -193,7 +193,7 @@ def GLOBAL_DECREF(func, x):
             jitlib_nop_1(func, x.boxed_value)
 
 def bc_compiler(function, return_type, argument_types,
-                variables, global_vars, constant_size, intrinsics,
+                variables, global_vars, fixed_buffers, intrinsics,
                 dump_code, verbose):
     if fully_dynamic_typing:
         def transform_to_object(t):
@@ -261,6 +261,21 @@ def bc_compiler(function, return_type, argument_types,
             value = func.new_constant(boxed, type)
         return type, value
 
+    def get_base_pointer(func, name, obj):
+        if not optimize_fixed_buffers or name not in fixed_buffers:
+            return PyBuffer_BasePointer(func, obj)
+        base_pointer_name = 'base pointer for ' + name
+        if name in arguments:
+            # We must have computed the base pointer before.
+            base = symbols[base_pointer_name].location
+        elif base_pointer_name in symbols:
+            base = symbols[base_pointer_name].location
+            if base is None:
+                base = func.new_value(jit.Type.void_ptr)
+                func.store(base, PyBuffer_BasePointer(func, obj))
+                symbols[base_pointer_name].location = base
+        return base
+
     scratch_space = None
 
     def evaluate_abstract_call(func, a):
@@ -291,7 +306,6 @@ def bc_compiler(function, return_type, argument_types,
     loop_stack = []
     for_loop_heads = {}
     for_loop_increments = {}
-    cached_base_addresses = dict()
     phi_locations = dict()
     func = None
 
@@ -380,6 +394,9 @@ def bc_compiler(function, return_type, argument_types,
             # reference counting is... complex.
             if not symbols[name].is_argument:
                 Py_DecRef(func, symbols[name].location)
+            # Compute the buffer base pointer for this value if appropriate.
+            if optimize_fixed_buffers and name in fixed_buffers:
+                get_base_pointer(func, name, value)
         func.store(symbols[name].location, value)
       # if not is_jit_number_type(symbols[name].type):
       #     obj_printer(func, value)
@@ -1293,7 +1310,7 @@ def bc_compiler(function, return_type, argument_types,
                 func.insn_return(null)
             # else: OK
                 func.insn_label(false)
-            items = PyArray_AsPointer(func, sequence)
+            items = PyBuffer_BasePointer(func, sequence)
             base_type = jit.Type.void_ptr
             while arg > 0:
                 arg -= 1
@@ -1328,7 +1345,7 @@ def bc_compiler(function, return_type, argument_types,
     def BUILD_TUPLE(func, arg, offset):
         x = PyTuple_New(func, func.new_constant(arg, jit.Type.int))
         if arg:
-            base = PyArray_AsPointer(func, x)
+            base = PyBuffer_BasePointer(func, x)
             while arg > 0:
                 arg -= 1
                 w = POP()
@@ -1468,12 +1485,11 @@ def bc_compiler(function, return_type, argument_types,
         # - list with numeric index
         # - tuple with numeric index
         # - any kind of container with any kind of index
-        if container.name and container.name in cached_base_addresses:
-            print('TODO: cached access!')
         if (# not bounds_checking and
             is_array(container.boxed_value) and
             is_jit_number(index.value)):
-            base = PyArray_AsPointer(func, container.boxed_value)
+            base = get_base_pointer(func, container.name,
+                                    container.boxed_value)
             base_type = container.type.get_ref()
             value = func.insn_load_elem(base, index.value, base_type)
             x = StackEntry(value=value, type=base_type, name=name)
@@ -1495,7 +1511,8 @@ def bc_compiler(function, return_type, argument_types,
         elif (not bounds_checking and
               isinstance(container.type, list) and
               is_jit_number(index.value)):
-            base = PyArray_AsPointer(func, container.boxed_value)
+            base = get_base_pointer(func, container.name,
+                                    container.boxed_value)
             base_type = jit.Type.void_ptr
             boxed_value = func.insn_load_elem(base, index.value, base_type)
             base_type = container.type[0]
@@ -1510,7 +1527,8 @@ def bc_compiler(function, return_type, argument_types,
         elif (not bounds_checking and
               is_tuple(container.boxed_value) and
               is_jit_number(index.value)):
-            base = PyArray_AsPointer(func, container.boxed_value)
+            base = get_base_pointer(func, container.name,
+                                    container.boxed_value)
             base_type = jit.Type.void_ptr
             boxed_value = func.insn_load_elem(base, index.value, base_type)
             Py_IncRef(func, boxed_value)
@@ -1583,12 +1601,11 @@ def bc_compiler(function, return_type, argument_types,
         # - list with numeric index
         # - tuple with numeric index
         # - any kind of container with any kind of index
-        if container.name and container.name in cached_base_addresses:
-            print('TODO: cached access!')
         if (not bounds_checking and
             is_array(container.boxed_value) and
             is_jit_number(index.value)):
-            base = PyArray_AsPointer(func, container.boxed_value)
+            base = get_base_pointer(func, container.name,
+                                    container.boxed_value)
             base_type = container.type.get_ref()
             if value.value is None:
                 value.value = func.unbox_value(value.boxed_value, base_type,
@@ -1596,22 +1613,11 @@ def bc_compiler(function, return_type, argument_types,
             value = func.insn_convert(value.value, base_type)
             func.insn_store_elem(base, index.value, value)
         elif (not bounds_checking and
-              isinstance(container.type, list) and
+              (isinstance(container.type, list) or
+               is_tuple(container.boxed_value)) and
               is_jit_number(index.value)):
-            base = PyArray_AsPointer(func, container.boxed_value)
-            old = func.insn_load_elem(base, index.value, jit.Type.void_ptr)
-            Py_DecRef(func, old)
-            if value.boxed_value is None:
-                # This does not use box_stack_entry but performs an explicit
-                # incref. Is that very good?
-                value.boxed_value = func.box_value(value.value)
-                value.refcount = 1
-            func.insn_store_elem(base, index.value, value.boxed_value)
-            Py_IncRef(func, value.boxed_value)
-        elif (not bounds_checking and
-              is_tuple(container.boxed_value) and
-              is_jit_number(index.value)):
-            base = PyArray_AsPointer(func, container.boxed_value)
+            base = get_base_pointer(func, container.name,
+                                    container.boxed_value)
             old = func.insn_load_elem(base, index.value, jit.Type.void_ptr)
             Py_DecRef(func, old)
             if value.boxed_value is None:
@@ -1788,6 +1794,20 @@ def bc_compiler(function, return_type, argument_types,
             if c is not None and isinstance(c, collections.Hashable):
                 const = func.new_constant(obj_ptr(c), jit.Type.void_ptr)
                 func.boxed_constants[c] = const
+        # Precompute base pointers for any fixed buffer arguments.
+        if optimize_fixed_buffers:
+            for name in fixed_buffers:
+                base_pointer_name = 'base pointer for ' + name
+                if name in arguments:
+                    obj = symbols[name].location
+                    base_pointer = func.new_value(jit.Type.void_ptr)
+                    func.store(base_pointer, PyBuffer_BasePointer(func, obj))
+                    symbols[base_pointer_name] = Local(jit.Type.void_ptr,
+                                                       base_pointer)
+                else:
+                    # This fixed buffer is a local. Or even a global.
+                    symbols[base_pointer_name] = Local(jit.Type.void_ptr,
+                                                       None)
         # Allocate scratch space for function calls. (TODO: Check if the
         # code contains calls.)
         stacksize = jit.Type.void_ptr.size * function.__code__.co_stacksize

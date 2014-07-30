@@ -24,3 +24,7 @@ bounds_checking = False
 # resolve statically? Set to True to simulate Python's behavior, False for
 # performance.
 late_binding = False
+
+# Optimize fixed buffers? Set to True for performance, False to simulate
+# Python's behavior.
+optimize_fixed_buffers = True

@@ -178,7 +178,7 @@ def PyMethod_GetSelf(func, op):
     self = func.insn_load_elem(op, self_offset, jit.Type.void_ptr)
     return self
 
-PythonCall(jitlib.PyArray_AsPointer, jit.Type.void_ptr, [jit.Type.void_ptr])
+PythonCall(jitlib.PyBuffer_BasePointer, jit.Type.void_ptr, [jit.Type.void_ptr])
 PythonCall(jitlib.PyJIT_iternext, jit.Type.void_ptr, [jit.Type.void_ptr])
 PythonCall(jitlib.PyJIT_print_int, jit.Type.void, [jit.Type.int])
 PythonCall(jitlib.PyJIT_print_double, jit.Type.void, [jit.Type.float64])

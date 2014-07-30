@@ -31,6 +31,7 @@ eval_A_times_u_compiler = \
                                 'j': jit.Type.int,
                                 'partial_sum': jit.Type.float64,
                                 'eval_A': jit.Type.float64},
+                     fixed_buffers={'results'},
                      dump_code=False)
 
 @eval_A_times_u_compiler

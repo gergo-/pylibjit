@@ -5,6 +5,10 @@
 # unboxed integer.
 # Beware: The optimization also throws away bounds checks! Only compile
 # tested code that is known not to use bad indices.
+# If you know that during each execution of the function some variable
+# always refers to a single array object which does not change its size, you
+# can document this fact by using the fixed_buffers annotation. This enables
+# an aggressive optimization.
 
 import array
 import jit, pylibjit
@@ -16,6 +20,7 @@ print('original array:', arr)
 @pylibjit.compile(return_type=object,
                   argument_types=[jit.Type.array_t(jit.Type.float64)],
                   variables={'i': jit.Type.int},
+                  fixed_buffers={'an_array'},
                   dump_code=False)
 def map_add_1(an_array):
     for i in range(len(an_array)):
@@ -27,6 +32,7 @@ print('modified array:', arr)
 @pylibjit.compile(return_type=jit.Type.int,
                   argument_types=[jit.Type.array_t(jit.Type.float64)],
                   variables={'sum': jit.Type.float64, 'i': jit.Type.int},
+                  fixed_buffers={'an_array'},
                   dump_code=False)
 def array_sum(an_array):
     sum = 0
