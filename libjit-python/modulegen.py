@@ -2239,7 +2239,6 @@ def register_Jit_type_methods(root_module, cls):
              'long', 'ulong', 'float32', 'float64', 'nfloat', 'void_ptr']
     # GB
     types.append('array')
-    types.append('bool')
     # types.append(['sys_char', 'sys_schar', 'sys_uchar'])
              ## 'sys_bool', 'sys_char', 'sys_schar', 'sys_uchar', 'sys_short', 'sys_ushort',
              ## 'sys_int', 'sys_uint', 'sys_long', 'sys_ulong', 'sys_longlong', 'sys_ulonglong',
@@ -2311,11 +2310,6 @@ def register_Jit_type_methods(root_module, cls):
                                'bool',
                                is_const=True,
                                getter='is_array')
-
-    cls.add_instance_attribute('is_bool',
-                               'bool',
-                               is_const=True,
-                               getter='is_bool')
 
     cls.add_instance_attribute('is_tuple',
                                'bool',

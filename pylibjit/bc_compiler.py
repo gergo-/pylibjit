@@ -250,10 +250,7 @@ def bc_compiler(function, return_type, argument_types,
 
     def maybe_unbox_constant(func, boxed):
         type, value = None, None
-        if boxed is True or boxed is False:
-            type = jit.Type.bool
-            value = None  # value = int(boxed)
-        elif isinstance(boxed, int) and boxed in range(-2**30, 2**30):
+        if isinstance(boxed, int) and boxed in range(-2**30, 2**30):
             type = jit.Type.int
             value = func.new_constant(boxed, type)
         elif isinstance(boxed, float):
@@ -631,16 +628,7 @@ def bc_compiler(function, return_type, argument_types,
 
     def UNARY_NOT(func, arg, offset):
         v = TOP()
-        if (v.type is not None and
-            hasattr(v.type, 'is_bool') and
-            v.type.is_bool and
-            v.value is not None):
-            x = v.value
-        else:
-            x = PyObject_IsTrue(func, func.box_stack_entry(v))
-      # if not reference_counting:
-      #     # Needed for go benchmark?
-      #     DECREF(v)
+        x = PyObject_IsTrue(func, func.box_stack_entry(v))
         zero = func.new_constant(0, jit.Type.int)
         result = func.new_value(jit.Type.void_ptr)
         with func.branch(x == zero) as (false_label, end):

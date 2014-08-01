@@ -143,15 +143,6 @@ _wrap_PyJit_type__get_is_array(PyJit_type *self, void * PYBINDGEN_UNUSED(closure
 }
 
 static PyObject *
-_wrap_PyJit_type__get_is_bool(PyJit_type *self, void * PYBINDGEN_UNUSED(closure))
-{
-    PyObject *py_retval;
-    
-    py_retval = Py_BuildValue((char *) "N", PyBool_FromLong(self->obj->is_bool()));
-    return py_retval;
-}
-
-static PyObject *
 _wrap_PyJit_type__get_is_tuple(PyJit_type *self, void * PYBINDGEN_UNUSED(closure))
 {
     PyObject *py_retval;
@@ -245,13 +236,6 @@ static PyGetSetDef PyJit_type__getsets[] = {
     {
         (char*) "is_struct", /* attribute name */
         (getter) _wrap_PyJit_type__get_is_struct, /* C function to get the attribute */
-        (setter) NULL, /* C function to set the attribute */
-        NULL, /* optional doc string */
-        NULL /* optional additional data for getter and setter */
-    },
-    {
-        (char*) "is_bool", /* attribute name */
-        (getter) _wrap_PyJit_type__get_is_bool, /* C function to get the attribute */
         (setter) NULL, /* C function to set the attribute */
         NULL, /* optional doc string */
         NULL /* optional additional data for getter and setter */
@@ -502,19 +486,6 @@ _wrap_PyJit_type__get_array(PyObject * PYBINDGEN_UNUSED(obj),  void * PYBINDGEN_
 }
 
 static PyObject *
-_wrap_PyJit_type__get_bool(PyObject * PYBINDGEN_UNUSED(obj),  void * PYBINDGEN_UNUSED(closure))
-{
-    PyObject *py_retval;
-    PyJit_type *py_jit_type;
-    
-    py_jit_type = PyObject_New(PyJit_type, &PyJit_type_Type);
-    py_jit_type->obj = jit_type::t_bool();
-    py_jit_type->flags = PYBINDGEN_WRAPPER_FLAG_NONE;
-    py_retval = Py_BuildValue((char *) "N", py_jit_type);
-    return py_retval;
-}
-
-static PyObject *
 _wrap_PyJit_type__get_tuple_t(PyObject * PYBINDGEN_UNUSED(obj),  void * PYBINDGEN_UNUSED(closure))
 {
     PyObject *py_retval;
@@ -615,13 +586,6 @@ static PyGetSetDef Jit_typeMeta__getsets[] = {
     {
         (char*) "tuple_t", /* attribute name */
         (getter) _wrap_PyJit_type__get_tuple_t, /* C function to get the attribute */
-        (setter) NULL, /* C function to set the attribute */
-        NULL, /* optional doc string */
-        NULL /* optional additional data for getter and setter */
-    },
-    {
-        (char*) "bool", /* attribute name */
-        (getter) _wrap_PyJit_type__get_bool, /* C function to get the attribute */
         (setter) NULL, /* C function to set the attribute */
         NULL, /* optional doc string */
         NULL /* optional additional data for getter and setter */

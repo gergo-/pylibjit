@@ -280,8 +280,9 @@ def insert_marker_call(func):
 
 def is_jit_number_type(type):
     return (type in [jit.Type.int, jit.Type.float64, jit.Type.ubyte,
-                     jit.Type.uint] or
-            (hasattr(type, 'is_bool') and type.is_bool))
+                     # uint is needed because ubyte is internally a variant
+                     # of it, or something. libjit's type system is a mess.
+                     jit.Type.uint])
 
 def is_jit_number(obj):
   # if hasattr(obj, 'type'):
@@ -584,10 +585,6 @@ class Function(jit.Function):
             if (value.type == jit.Type.int or value.type == jit.Type.ubyte or
                 value.type == jit.Type.uint):
                 return PyLong_FromLong(self, value)
-            elif value.type.is_bool:
-                v = PyBool_FromLong(self, value)
-                obj_printer(self, v)
-                return v
             elif value.type == jit.Type.float64:
                 return PyFloat_FromDouble(self, value)
             elif value.type == jit.Type.void_ptr or value.type.is_array:

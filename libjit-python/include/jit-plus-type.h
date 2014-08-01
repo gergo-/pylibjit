@@ -71,12 +71,6 @@ public:
             m_ref_type = jit_type_copy(jit_type_get_ref(tagged));
             m_name = "array";
         } else if (jit_type_is_tagged(other) &&
-                   jit_type_get_tagged_kind(other) == 21) {
-            m_type = jit_type_copy(other);
-            jit_type_t tagged = jit_type_get_tagged_type(other);
-            m_ref_type = jit_type_copy(jit_type_get_ref(tagged));
-            m_name = "bool";
-        } else if (jit_type_is_tagged(other) &&
                    jit_type_get_tagged_kind(other) == 22) {
             m_type = jit_type_copy(other);
             jit_type_t tagged = jit_type_get_tagged_type(other);
@@ -171,17 +165,6 @@ public:
     make_constructor(sys_float)
     make_constructor(sys_double)
     make_constructor(sys_long_double)
-    static jit_type *t_bool() { \
-        jit_type *bool_type = create_tagged(jit_type_ubyte,
-                                            /* tag: */ 21 /* PYJIT_TYPE_BOOL */,
-                                            /* extra data: */ NULL,
-                                            /* free function: */ free,
-                                            /* incref: */ 1);
-        bool_type->m_name = "bool";
-     // printf("!\n! will return bool type: ");
-     // bool_type->name();
-        return bool_type;
-    }
 
     // GB
     static jit_type *t_array(jit_type_t ref_type = NULL) {
@@ -376,10 +359,6 @@ public:
      //     printf("tag (expect 20): %d\n", jit_type_get_tagged_kind(m_type));
      // }
         return is_tagged() && jit_type_get_tagged_kind(m_type) == 20;
-    }
-
-    int is_bool() const {
-        return is_tagged() && jit_type_get_tagged_kind(m_type) == 21;
     }
 
     int is_tuple() const {
