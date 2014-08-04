@@ -25,3 +25,15 @@ print('square_unboxed(42) = {}, expected {}'.format(
 # Python normally uses.
 print('square_unboxed(2**30) = {}, expected {}'.format(
         square_unboxed(2**30), square_boxed(2**30)))
+
+@pylibjit.compile(return_type=jit.Type.int,
+                  argument_types=[int],
+                  variables={'sum': jit.Type.int, 'i': jit.Type.int},
+                  dump_code=False)
+def sum_loop(n):
+    sum = 0
+    for i in range(n):
+        sum += i
+    return sum
+
+print(sum_loop(10))

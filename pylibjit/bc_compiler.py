@@ -1367,6 +1367,8 @@ def bc_compiler(function, return_type, argument_types,
             if (dis.opname[code[offset+1]] == 'FOR_ITER' and
                 offset + 1 in for_loop_heads and
                 dis.opname[code[offset+1+3]] == 'STORE_FAST'):
+                if verbose:
+                    print('unboxed loop, nothing to do for GET_ITER')
                 return
             # FIXME: Also check for STORE_DEREF here?
             else:
@@ -1931,8 +1933,8 @@ def bc_compiler(function, return_type, argument_types,
                         t = jit.Type.int
                         args[0].value = func.unbox_value(args[0].boxed_value,t)
                     func.store(iter_var.location, args[0].value)
-                # Evaluate labeled loop condition.
-                func.insn_label(labels[for_offset])
+                # Find the counting loop's limit. Note that this is constant
+                # throughout the loop (range is only evaluated once).
                 if len(args) == 1:
                     limit = args[0]
                 else:
@@ -1954,6 +1956,8 @@ def bc_compiler(function, return_type, argument_types,
                             dump_stack()
                         assert limit.boxed_value is not None
                         limit = PyLong_AsLong(func, limit.boxed_value)
+                # Evaluate labeled loop condition.
+                func.insn_label(labels[for_offset])
                 if len(args) == 3:
                     # The third argument, the increment, may be negative.
                     # The loop condition depends on this.
