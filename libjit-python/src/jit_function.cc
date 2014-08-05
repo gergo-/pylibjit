@@ -3661,8 +3661,6 @@ _wrap_PyJit_function__call__(PyJit_function *self, PyObject *args, PyObject **re
     return py_retval;
 } 
 
-static ptrdiff_t PyArray_buffer_offset = -1;
-
 extern "C" void jitlib_nop(void)
 {
 }
@@ -3693,49 +3691,35 @@ extern "C" binaryfunc py_float_binaryfunc(int idx)
     return NB_BINOP(PyFloat_Type.tp_as_number, idx);
 }
 
-extern "C" int InitializeArrayOffset(void)
-{
-    /* UGLY HACK: Rely on the fact that an array object starts with a
-     * PyVarObject head, immediately followed by the item pointer. */
-    PyArray_buffer_offset = sizeof(PyVarObject);
- // printf("computed array offset %d\n", PyArray_buffer_offset);
-    return PyArray_buffer_offset;
+extern "C" void *PyList_BasePointer(PyObject *list) {
+    size_t offset = offsetof(PyListObject, ob_item);
+    char *p = (char *) list + offset;
+    return *(void **) p;
+}
+
+extern "C" void *PyTuple_BasePointer(PyObject *tuple) {
+    size_t offset = offsetof(PyTupleObject, ob_item);
+    char *p = (char *) tuple + offset;
+    return p;
+}
+
+extern "C" void *PyArray_BasePointer(PyObject *array) {
+    // Note that the array object's representation is hidden from us. Hack
+    // around this by assuming that the initial members will always be laid
+    // out as in the PyListObject.
+    size_t offset = offsetof(PyListObject, ob_item);
+    char *p = (char *) array + offset;
+    return *(void **) p;
 }
 
 extern "C" void *PyBuffer_BasePointer(PyObject *array)
 {
-    if (PyArray_buffer_offset == -1)
-    {
-        fprintf(stderr, "error: should have called InitializeArrayOffset\n");
-        abort();
-        InitializeArrayOffset();
-    }
- // printf("will try to fetch pointer from array %p\n", array);
- // obj_printer(array);
- // printf("length %ld\n", (long) PyObject_Size(array));
-    char *p = (char *) array + PyArray_buffer_offset;
- // printf("-> %p -> %p\n", (void **) p, *(void **) p);
     if (PyList_Check(array)) {
-        p = (char *) *(void **) p;
-     // printf("list! -> %p\n", p);
-        return p;
+        return PyList_BasePointer(array);
     } else if (PyTuple_Check(array)) {
-     // printf("tuple! -> %p\n", p);
-        return p;
+        return PyTuple_BasePointer(array);
     }
- // long l = PyObject_Size(array);
- // long limit = 0;
- // if (l > 10) {
- //     limit = l - 10;
- // }
- // while (l > limit) {
- //     l--;
- //     PyObject *o = (PyObject *) ((void **) p)[l];
- //     printf("%p[%ld] -> %p\n", p, l, o);
- //     obj_printer(o);
- // }
-    return *(void **) p;
- // return p;
+    return PyArray_BasePointer(array);
 }
 
 extern "C" PyObject *PyJIT_iternext(PyObject *v)

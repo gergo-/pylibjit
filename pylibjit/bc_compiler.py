@@ -874,7 +874,7 @@ def bc_compiler(function, return_type, argument_types,
                         'isinstance': PyObject_IsInstance,
                         'len': PyObject_Size}
         builtins = {'abs': abs, 'chr': chr, 'enumerate': enumerate,
-                    'float': float, 'int': int, # 'isinstance': isinstance,
+                    'float': float, 'hash': hash, 'int': int,
                     'len': len, 'list': list, 'map': map, 'max': max,
                     'min': min, 'ord': ord, 'print': print,
                     'reversed': reversed, 'slice': slice, 'str': str,
@@ -914,17 +914,26 @@ def bc_compiler(function, return_type, argument_types,
             # Do the general lookup.
             globals_obj = func.new_constant(obj_ptr(function.__globals__),
                                             jit.Type.void_ptr)
+            builtins_obj = func.new_constant(obj_ptr(__builtins__),
+                                             jit.Type.void_ptr)
             id = func.new_constant(obj_ptr(names[arg]), jit.Type.void_ptr)
-          # obj_printer(func, globals_obj)
-          # obj_printer(func, id)
+            result = func.new_value(jit.Type.void_ptr)
             g = PyDict_GetItem(func, globals_obj, id)
             with func.branch(g == func.make_null_ptr()) as (false, end):
-                obj_printer(func, globals_obj)
-                obj_printer(func, id)
-                func.insn_return(g)
-            # else:
+                g2 = PyDict_GetItem(func, builtins_obj, id)
+                with func.branch(g2 == func.make_null_ptr()) as (f2, e2):
+                    obj_printer(func, globals_obj)
+                    obj_printer(func, builtins_obj)
+                    obj_printer(func, id)
+                    func.insn_return(g2)
+                # else:  (found)
+                    func.insn_label(f2)
+                    func.store(result, g2)
+                func.insn_branch(end)
+            # else:  (found)
                 func.insn_label(false)
-            x = StackEntry(name=name, boxed_value=g,
+                func.store(result, g)
+            x = StackEntry(name=name, boxed_value=result,
                            type=global_vars[name], refcount=0)
           # marker_int(func, func.new_constant(offset))
           # obj_printer(func, x.boxed_value)
@@ -1030,6 +1039,17 @@ def bc_compiler(function, return_type, argument_types,
                                     name=tgt.builtin.__name__+'()',
                                     refcount=1,
                                     freshly_allocated=True))
+        elif (tgt.api_builtin is not None and
+              tgt.name == 'len' and
+              len(args) == 1 and  # this cannot really fail
+              (is_list(args[0]) or is_tuple(args[0]) or is_array(args[0]))):
+            # Load length field directly.
+            size_offset = func.new_constant(jit_ob_size_offset())
+            obj_size = func.insn_load_elem(args[0].boxed_value,
+                                           size_offset,
+                                           jit.Type.int)
+            stack.append(StackEntry(value=obj_size, type=jit.Type.int,
+                                    refcount=1))
         elif tgt.api_builtin is not None:
             arguments = [func.box_stack_entry(a) for a in args]
             result = tgt.api_builtin(func, *arguments)
@@ -1343,7 +1363,7 @@ def bc_compiler(function, return_type, argument_types,
         PUSH(x)
 
     def BUILD_MAP(func, arg, offset):
-        x = _PyDict_NewPresized(func, func.new_constant(arg, jit.Type.int))
+        x = PyDict_NewPresized(func, func.new_constant(arg, jit.Type.int))
         x = StackEntry(boxed_value=x, refcount=1)
         PUSH(x)
 

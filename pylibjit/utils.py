@@ -67,6 +67,7 @@ PythonCall(pylib.PyFunction_SetClosure, jit.Type.int, [jit.Type.void_ptr] * 2)
 PythonCall(pylib.PyFunction_SetDefaults, jit.Type.int, [jit.Type.void_ptr] * 2)
 PythonCall(pylib.PySequence_Contains, jit.Type.int, [jit.Type.void_ptr] * 2)
 PythonCall(pylib._PyDict_NewPresized, jit.Type.void_ptr, [jit.Type.int])
+PyDict_NewPresized = _PyDict_NewPresized
 PythonCall(pylib.PyThreadState_Get, jit.Type.void_ptr, [])
 PythonCall(pylib.PyFrame_New, jit.Type.void_ptr, [jit.Type.void_ptr] * 4)
 
@@ -179,6 +180,9 @@ def PyMethod_GetSelf(func, op):
     return self
 
 PythonCall(jitlib.PyBuffer_BasePointer, jit.Type.void_ptr, [jit.Type.void_ptr])
+PythonCall(jitlib.PyList_BasePointer, jit.Type.void_ptr, [jit.Type.void_ptr])
+PythonCall(jitlib.PyTuple_BasePointer, jit.Type.void_ptr, [jit.Type.void_ptr])
+PythonCall(jitlib.PyArray_BasePointer, jit.Type.void_ptr, [jit.Type.void_ptr])
 PythonCall(jitlib.PyJIT_iternext, jit.Type.void_ptr, [jit.Type.void_ptr])
 PythonCall(jitlib.PyJIT_print_int, jit.Type.void, [jit.Type.int])
 PythonCall(jitlib.PyJIT_print_double, jit.Type.void, [jit.Type.float64])
@@ -226,10 +230,6 @@ refcnt_offset = jit_ob_refcnt_offset()
 type_offset = jit_ob_type_offset()
 tuple_item_offset = jit_tuple_ob_item_offset()
 call_offset = jit_tp_call_offset()
-
-InitializeArrayOffset = jitlib.InitializeArrayOffset
-InitializeArrayOffset.argtypes = ()
-InitializeArrayOffset()
 
 def Py_IncRef(func, value):
     if inline_rc:
@@ -296,11 +296,8 @@ def is_array(obj):
     except:
         return False
 
-def is_list(obj, type):
-    if type is None:
-        type = obj.type
-    print('is list?', obj, isinstance(type, list))
-    return isinstance(type, list)
+def is_list(obj):
+    return isinstance(obj.type, list)
 
 def is_tuple(obj):
     try:
