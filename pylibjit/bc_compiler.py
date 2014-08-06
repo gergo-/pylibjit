@@ -769,8 +769,7 @@ def bc_compiler(function, return_type, argument_types,
                 result = (l != r)
             else:
                 raise CompileError('bad comparison: ' + str(arg))
-        x = StackEntry(value=result, type=(jit.Type.int if unboxed else bool),
-                       refcount=1)
+        x = StackEntry(value=result, type=jit.Type.int, refcount=1)
       # if v.value is None or not is_jit_number_type(v.type):
         if not v.builtin:
             DECREF(v)
@@ -815,6 +814,25 @@ def bc_compiler(function, return_type, argument_types,
 
     def JUMP_IF_x_OR_POP(func, arg, offset, x):
         w = POP()
+        # First, check if the condition is an unboxed int. That makes things
+        # a lot simpler.
+        if (w.value is not None and
+            w.boxed_value is None and
+            w.type == jit.Type.int):
+            # OK, checking the condition is simple.
+            zero = func.new_constant(0, jit.Type.int)
+            cond = (w.value != zero if x else w.value == zero)
+            true = func.new_constant(obj_ptr(True), jit.Type.void_ptr)
+            false = func.new_constant(obj_ptr(False), jit.Type.void_ptr)
+            phi_value = (true if x else false)
+            with func.branch(cond) as (false_label, end_label):
+                func.store(phi_locations[arg], phi_value)
+                JUMPTO(arg)
+            # else:
+                func.insn_label(false_label)
+                # POP()
+            return
+        # Standard boxed implementation.
         true = func.new_constant(obj_ptr(True), jit.Type.void_ptr)
         false = func.new_constant(obj_ptr(False), jit.Type.void_ptr)
         cond = func.new_constant(obj_ptr(x), jit.Type.void_ptr)
@@ -2042,15 +2060,30 @@ def bc_compiler(function, return_type, argument_types,
                         dump_stack()
                     x = POP()
                     assert x.boxed_value is not None or x.value is not None
-                    boxed_value = func.box_stack_entry(x)
-                    if not reference_counting:
-                        if not x.freshly_allocated: 
-                            # If this value is the result of some control
-                            # flow stuff, which it apparently is, make sure
-                            # we have a refcount on it. This is a bit of a
-                            # hack.
-                            Py_IncRef(func, x.boxed_value)
-                    func.store(phi_locations[offset], boxed_value)
+                    if x.boxed_value is None and x.type == jit.Type.int:
+                        # "Box" this by comparing to 0 and using a constant
+                        # pointer to True or False.
+                        zero = func.new_constant(0, jit.Type.int)
+                        true = func.new_constant(obj_ptr(True),
+                                                 jit.Type.void_ptr)
+                        false = func.new_constant(obj_ptr(False),
+                                                  jit.Type.void_ptr)
+                        with func.branch(x.value != zero) as (false_lbl, end):
+                            func.store(phi_locations[offset], true)
+                            func.insn_branch(end)
+                        # else:
+                            func.insn_label(false_lbl)
+                            func.store(phi_locations[offset], false)
+                    else:
+                        boxed_value = func.box_stack_entry(x)
+                        if not reference_counting:
+                            if not x.freshly_allocated: 
+                                # If this value is the result of some control
+                                # flow stuff, which it apparently is, make sure
+                                # we have a refcount on it. This is a bit of a
+                                # hack.
+                                Py_IncRef(func, x.boxed_value)
+                        func.store(phi_locations[offset], boxed_value)
                     # And make sure the top-of-stack is set correctly.
                     PUSH(StackEntry(boxed_value=phi_locations[offset],
                                     name='phi_'+str(offset), refcount=1,
