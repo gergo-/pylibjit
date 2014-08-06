@@ -82,6 +82,14 @@ PythonCall(pylib.PyNumber_Power, jit.Type.void_ptr, [jit.Type.void_ptr] * 3)
 
 PythonCall(pylib.PyErr_Occurred, jit.Type.void_ptr, [])
 
+def object_is_true(func, obj, type):
+    if is_list_type(type) or is_tuple_type(type) or is_array_type(type):
+        # Inline Py_SIZE implementation.
+        size_offset = func.new_constant(jit_ob_size_offset())
+        obj_size = func.insn_load_elem(obj, size_offset, jit.Type.int)
+        return obj_size
+    return PyObject_IsTrue(func, obj)
+
 import site
 import distutils.sysconfig
 libname = 'jit' + distutils.sysconfig.get_config_var('SO')
@@ -264,6 +272,20 @@ def Py_DecRef(func, value):
     else:
         Py_DecRef_func(func, value)
 
+def buffer_base_pointer(func, obj, type=None):
+    if is_list_type(type) or is_tuple_type(type) or is_array_type(type):
+        # Inlined computation of the base pointer. The basic offset is the
+        # same for all three types.
+        base = obj + func.new_constant(tuple_item_offset)
+        if is_tuple_type(type):
+            return base
+        else:
+            # Lists and arrays need an extra dereference.
+            return func.insn_load_elem(base, func.new_constant(0),
+                                       jit.Type.void_ptr)
+    # Otherwise, dispatch on the type at execution time.
+    return PyBuffer_BasePointer(func, obj)
+
 def py_obj_printer(func, obj):
     args = [func.new_constant(obj_ptr(obj), jit.Type.void_ptr)]
     args = func.make_arg_tuple(args)
@@ -290,20 +312,32 @@ def is_jit_number(obj):
   #     print('number type?', is_jit_number_type(obj.type))
     return hasattr(obj, 'type') and is_jit_number_type(obj.type)
 
-def is_array(obj):
+def is_array_type(typ):
     try:
-        return obj.type.is_array
+        return typ.is_array
+    except:
+        return False
+
+def is_array(obj):
+    return is_array_type(obj.type)
+
+def is_list_type(typ):
+    try:
+        return isinstance(typ, list)
     except:
         return False
 
 def is_list(obj):
-    return isinstance(obj.type, list)
+    return is_list_type(obj.type)
 
-def is_tuple(obj):
+def is_tuple_type(typ):
     try:
-        return obj.type.is_tuple
+        return typ.is_tuple
     except:
         return False
+
+def is_tuple(obj):
+    return is_tuple_type(obj.type)
 
 function_table = collections.defaultdict(dict)
 
