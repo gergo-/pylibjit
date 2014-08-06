@@ -1050,6 +1050,8 @@ def bc_compiler(function, return_type, argument_types,
             obj_size = func.insn_load_elem(args[0].boxed_value,
                                            size_offset,
                                            jit.Type.int)
+            # Don't forget to decref the argument!
+            DECREF(args[0])
             stack.append(StackEntry(value=obj_size, type=jit.Type.int,
                                     refcount=1))
         elif tgt.api_builtin is not None:
