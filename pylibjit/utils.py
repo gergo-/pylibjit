@@ -300,6 +300,9 @@ class CompileError(Exception):
 def insert_marker_call(func):
     func.insn_call_native('marker', marker, marker_sig, [])
 
+def is_number_type(type):
+    return is_jit_number_type(type) or type in {int, float}
+
 def is_jit_number_type(type):
     return (type in [jit.Type.int, jit.Type.float64, jit.Type.ubyte,
                      # uint is needed because ubyte is internally a variant

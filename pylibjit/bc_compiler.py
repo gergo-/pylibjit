@@ -543,8 +543,11 @@ def bc_compiler(function, return_type, argument_types,
             elif (v.type == jit.Type.int and w.type == int or
                   v.type == int and w.type == jit.Type.int):
                 common_type = int
-            elif v.type is float or w.type is float:
+            elif ((v.type is float or w.type is float) and
+                  is_number_type(v.type) and is_number_type(w.type)):
                 common_type = float
+            else:
+                common_type = object
             x = StackEntry(boxed_value=result, freshly_allocated=True,
                            refcount=1, type=common_type, name=name)
           # Py_DecRef(func, l)
@@ -1511,6 +1514,7 @@ def bc_compiler(function, return_type, argument_types,
         v = TOP()
         container, index = v, w
         assert container.name
+        container_name = container.name
         name = container.name + '[]'
         # There are a few similar cases here:
         # - array with numeric index
@@ -1561,11 +1565,20 @@ def bc_compiler(function, return_type, argument_types,
               is_jit_number(index.value)):
             base = get_base_pointer(func, container.name,
                                     container.boxed_value, container.type)
-            base_type = jit.Type.void_ptr
-            boxed_value = func.insn_load_elem(base, index.value, base_type)
-            Py_IncRef(func, boxed_value)
-            x = StackEntry(boxed_value=boxed_value, type=base_type,
-                           name=name, refcount=1, freshly_allocated=True)
+            boxed_value = func.insn_load_elem(base, index.value,
+                                              jit.Type.void_ptr)
+            Py_IncRef(func, boxed_value)  # is this really necessary?
+            base_type = (symbols[name].type if name in symbols
+                         else jit.Type.void_ptr)
+            if False and is_jit_number_type(base_type):
+                Py_IncRef(func, boxed_value)  # why is this needed?
+                value = func.unbox_value(boxed_value, base_type)
+            else:
+              # Py_IncRef(func, boxed_value)  # wasn't needed so far?
+                value = None
+            x = StackEntry(boxed_value=boxed_value, value=value,
+                           type=base_type, name=name, refcount=1,
+                           freshly_allocated=True)
         else:
             getitem_target = None
             if (container.type is not object and
@@ -1576,6 +1589,7 @@ def bc_compiler(function, return_type, argument_types,
                     getitem_target = table[getitem]
                     getitem_target.__name__ = getitem.replace('.', '')
             container = func.box_stack_entry(v)
+            base_type = object
             if getitem_target is not None:
                 if late_binding:
                     # Simulate the lookup of the getitem attribute.
@@ -1596,13 +1610,20 @@ def bc_compiler(function, return_type, argument_types,
                                        getitem_target,
                                        getitem_target.create_signature(),
                                        [container, index])
+            elif (container_name in variables and
+                  is_list_type(variables[container_name])):
+                index = func.box_stack_entry(w)
+                value = PyObject_GetItem(func, container, index)
+                base_type = variables[container_name][0]
             else:
                 index = func.box_stack_entry(w)
                 value = PyObject_GetItem(func, container, index)
             x = StackEntry(boxed_value=value, name=name, refcount=1,
-                           freshly_allocated=True)
+                           type=base_type, freshly_allocated=True)
             if name in variables:
                 x.type = variables[name]
+            if is_jit_number_type(x.type):
+                x.value = func.unbox_value(x.boxed_value, x.type, decref=False)
             elif static_number_typing:
                 if is_array(v.boxed_value):
                     base_type = v.type.get_ref()
@@ -1610,7 +1631,7 @@ def bc_compiler(function, return_type, argument_types,
                     base_type = v.type[0]
                 else:
                     base_type = None
-                if base_type is not None:
+                if base_type is not None and is_jit_number_type(base_type):
                     if base_type == jit.Type.float64:
                         x.type = float
                     else:
@@ -1813,7 +1834,7 @@ def bc_compiler(function, return_type, argument_types,
                 assert isinstance(var, Local)
                 if isinstance(var.type, jit.Type):
                     var.location = func.new_value(var.type)
-                    if var.type.is_array:
+                    if not is_jit_number_type(var.type):
                         func.store(var.location, func.make_null_ptr())
                 else:
                     var.location = func.new_value(jit.Type.void_ptr)
