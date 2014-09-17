@@ -1384,7 +1384,7 @@ def bc_compiler(function, return_type, argument_types,
                 w = POP()
                 index = func.new_constant(arg, jit.Type.int)
                 func.insn_store_elem(base, index, func.box_stack_entry(w))
-        x = StackEntry(boxed_value=x, refcount=1)
+        x = StackEntry(boxed_value=x, refcount=1, freshly_allocated=True)
         PUSH(x)
 
     def BUILD_MAP(func, arg, offset):
