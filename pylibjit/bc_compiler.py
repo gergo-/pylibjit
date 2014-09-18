@@ -389,10 +389,9 @@ def bc_compiler(function, return_type, argument_types,
                 if not v.freshly_allocated:
                   # obj_printer(func, value)
                     Py_IncRef(func, value)
-            # Do not decref when storing to argument locations. Argument
-            # reference counting is... complex.
-            if not symbols[name].is_argument:
-                Py_DecRef(func, symbols[name].location)
+            # The reference in this location will be lost when we overwrite
+            # it, so decrement the target's reference count.
+            Py_DecRef(func, symbols[name].location)
             # Compute the buffer base pointer for this value if appropriate.
             if optimize_fixed_buffers and name in fixed_buffers:
                 get_base_pointer(func, name, value, symbols[name].type)
@@ -665,40 +664,8 @@ def bc_compiler(function, return_type, argument_types,
 
     def RETURN_VALUE(func, arg, offset):
         value = POP()
-        # Clean up local variables.
-        for v in symbols:
-            if (v.isidentifier() and
-                ((v not in arguments and
-                  v not in consts) or v in freevars)):
-              # print('local symbol', v)
-                name = v
-                v = symbols[v].location
-                if not is_jit_number(v):
-                    if not reference_counting and name == value.name:
-                        if verbose:
-                            print('return', name, 'do not decref')
-                    else:
-                        if verbose:
-                            print('decref', name)
-                        Py_DecRef(func, v)
-            elif v in consts:
-                if verbose:
-                    print('constant:', v)
-                  # obj_printer(func, v)
-            else:
-                if verbose:
-                    print('other symbol', v)
-                pass
-        # Also clean up any loops we might be returning out of.
-        for loop in reversed(loop_stack):
-            if verbose:
-                print('loop entry', loop)
-            if loop.iterator is not None:
-                Py_DecRef(func, loop.iterator)
-            if loop.iter_var is not None:
-                # FIXME: only if not reference_counting?
-                Py_DecRef(func, loop.iter_var)
-        # Now perform the return.
+        
+        # First, find out what value (if any) to return.
         generate_return_instruction = True
         if (not is_jit_number_type(func.return_type) and
             value.boxed_value is None and
@@ -739,6 +706,45 @@ def bc_compiler(function, return_type, argument_types,
               # if value.type == bool:
               #     marker_int(func, func.new_constant(offset))
               #     obj_printer(func, return_value)
+
+        # Clean up local variables.
+        for v in symbols:
+            if (v.isidentifier() and
+                ((v not in arguments and
+                  v not in consts) or v in freevars)):
+              # print('local symbol', v)
+                name = v
+                v = symbols[v].location
+                if not is_jit_number(v):
+                    if not reference_counting and name == value.name:
+                        if verbose:
+                            print('return', name, 'do not decref')
+                    else:
+                        if verbose:
+                            print('decref', name)
+                        Py_DecRef(func, v)
+            elif v in consts:
+                if verbose:
+                    print('constant:', v)
+                  # obj_printer(func, v)
+            else:
+                if verbose:
+                    print('other symbol', v)
+                pass
+        # Also clean up any loops we might be returning out of.
+        for loop in reversed(loop_stack):
+            if verbose:
+                print('loop entry', loop)
+            if loop.iterator is not None:
+                Py_DecRef(func, loop.iterator)
+            if loop.iter_var is not None:
+                # FIXME: only if not reference_counting?
+                Py_DecRef(func, loop.iter_var)
+        # Now finally release arguments as well.
+        for name in arguments:
+            if not is_jit_number(symbols[name].location):
+                Py_DecRef(func, symbols[name].location)
+
         # and now return
         if generate_return_instruction:
             func.insn_return(return_value)
@@ -1939,6 +1945,12 @@ def bc_compiler(function, return_type, argument_types,
         labels = {l: func.new_label() for l in dis.findlabels(code)}
         phi_locations = {l: func.new_value(jit.Type.void_ptr, 0)
                          for l in dis.findlabels(code)}
+
+        # Ensure that we own references to our arguments.
+        for name in arguments:
+            if not is_jit_number(symbols[name].location):
+                Py_IncRef(func, symbols[name].location)
+
         for bc, arg, offset in enumerate_code(code):
           # marker_int(func, func.new_constant(offset, jit.Type.int))
           # if verbose:
