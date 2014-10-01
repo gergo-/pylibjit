@@ -633,6 +633,7 @@ def bc_compiler(function, return_type, argument_types,
     def UNARY_NOT(func, arg, offset):
         v = TOP()
         x = object_is_true(func, func.box_stack_entry(v), v.type)
+        DECREF(v)
         zero = func.new_constant(0, jit.Type.int)
         result = func.new_value(jit.Type.void_ptr)
         with func.branch(x == zero) as (false_label, end):
@@ -737,9 +738,8 @@ def bc_compiler(function, return_type, argument_types,
                 print('loop entry', loop)
             if loop.iterator is not None:
                 Py_DecRef(func, loop.iterator)
-            if loop.iter_var is not None:
-                # FIXME: only if not reference_counting?
-                Py_DecRef(func, loop.iter_var)
+            # Do not decref loop.iter_var; it is a normal local variable and
+            # has already had a decref above.
         # Now finally release arguments as well.
         for name in arguments:
             if not is_jit_number(symbols[name].location):
@@ -796,9 +796,7 @@ def bc_compiler(function, return_type, argument_types,
                          else condition)
         else:
             err = object_is_true(func, w.boxed_value, w.type)
-          # if not reference_counting:
-          #     # Needed for go benchmark?
-          #     DECREF(w)
+            DECREF(w)
             zero = func.new_constant(0, jit.Type.int)
             condition = (err == zero if x == False else err != zero)
         is_for_backedge = (arg < offset and arg in for_loop_heads)
@@ -1275,11 +1273,14 @@ def bc_compiler(function, return_type, argument_types,
             if verbose:
                 print('decref iterator')
             Py_DecRef(func, loop_stack[-1].iterator)
+            func.store(loop_stack[-1].iterator, func.make_null_ptr())
         if loop_stack[-1].iter_var is not None:
             # FIXME: only if not reference_counting?
             if verbose:
                 print('decref itervar')
-            Py_DecRef(func, loop_stack[-1].iter_var)
+            if not is_jit_number(loop_stack[-1].iter_var):
+                Py_DecRef(func, loop_stack[-1].iter_var)
+                func.store(loop_stack[-1].iter_var, func.make_null_ptr())
         loop_stack.pop()
 
     def POP_TOP(func, arg, offset):
@@ -1375,8 +1376,6 @@ def bc_compiler(function, return_type, argument_types,
             if not reference_counting and not w.freshly_allocated:
                 # Force this incref now.
                 Py_IncRef(func, w.boxed_value)
-            else:
-                INCREF(w)
         x = StackEntry(boxed_value=x, type=[object], refcount=1,
                        freshly_allocated=True)
         PUSH(x)
@@ -1434,6 +1433,17 @@ def bc_compiler(function, return_type, argument_types,
         else:
             v = TOP()
         # General implementation.
+        if dis.opname[code[offset+1]] == 'FOR_ITER':
+            assert loop_stack
+            if dis.opname[code[offset+1+3]] == 'STORE_FAST':
+                # If the next instruction is STORE_FAST, store that variable
+                # as the loop iteration variable. We need to decref it when
+                # exiting the loop. Initialize it to null (because the
+                # STORE_FAST will decref it before writing to it).
+                var_index = operand_value(code, offset+1+3)
+                iter_var = symbols[varnames[var_index]].location
+                loop_stack[-1].iter_var = iter_var
+                func.store(iter_var, func.make_null_ptr())
         x = PyObject_GetIter(func, v.boxed_value)
         if not reference_counting and v.freshly_allocated:
             # Force a decref.
@@ -1483,14 +1493,6 @@ def bc_compiler(function, return_type, argument_types,
             if found_loop_stack_entry:
                 assert loop_stack[-1].iterator is None
                 loop_stack[-1].iterator = TOP().boxed_value
-                # If the next instruction is STORE_FAST, also store that
-                # variable as the loop iteration variable. We need to decref
-                # it when exiting the loop.
-                if dis.opname[code[offset+3]] == 'STORE_FAST':
-                    var_index = operand_value(code, offset+3)
-                    iter_var = symbols[varnames[var_index]].location
-                    iter_var = None  # FIXME
-                    loop_stack[-1].iter_var = iter_var
             else:
                 raise CompileError('no loop stack entry at FOR_ITER ' +
                                    str(offset) + ', control flow too complex?')
