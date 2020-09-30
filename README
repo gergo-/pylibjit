@@ -1,7 +1,7 @@
 This is pylibjit, a Python library for compiling Python functions.
 
 pylibjit works by adding decorators to functions that you want to compile.
-The program containing the compiled functions still runs inside the standard
+The program containing the compiled functions which still runs inside the standard
 Python interpreter. For example:
 
 # original code
