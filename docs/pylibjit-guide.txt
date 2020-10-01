@@ -1,6 +1,6 @@
 === Introduction ===
 
-pylibjit is a Python compiler you can invoke from within interpreted Python
+pylibjit is a Python compiler which you can invoke from within interpreted Python
 programs to compile certain functions that you want to speed up. The
 compiler is invoked by applying decorators to functions that you want to
 compile. The decorator's arguments specify data types for the function's
@@ -41,9 +41,9 @@ and apply the pylibjit.compile decorator:
             sum += i
         return sum
 
-This modified program can be run through the Python interpreter as before.
+This modified program can run through the Python interpreter as before.
 After Python has processed the function definition, the decorator will be
-executed an will replace the original Python function object 'range_sum' by
+executed and will replace the original Python function object 'range_sum' by
 a callable which, if called, executes a compiled version of the Python code.
 
 The decorator can take several arguments. At the very least, you need to
